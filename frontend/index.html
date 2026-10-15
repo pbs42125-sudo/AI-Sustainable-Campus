@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EcoPulse AI - Remote Campus Grid & Emergency WhatsApp Dispatch</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.1); opacity: 0.2; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .pulse-ring { animation: pulse-ring 2s infinite ease-in-out; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-5 font-sans antialiased">
+
+  <!-- Incharge Configuration Modal -->
+  <div id="incharge-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center hidden">
+    <div class="bg-slate-900 border border-slate-700 rounded-xl p-5 max-w-md w-full shadow-2xl">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-800 mb-4">
+        <h3 class="font-bold text-white text-sm uppercase">Manage Zone Incharge Contacts</h3>
+        <button onclick="closeInchargeModal()" class="text-slate-400 hover:text-white cursor-pointer text-sm font-bold">✕</button>
+      </div>
+      <div class="space-y-3 text-xs font-sans">
+        <div>
+          <label class="block text-slate-400 mb-1">Select Campus Zone:</label>
+          <select id="modal-zone-id" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-mono">
+            <option value="block-a">Academic Block A</option>
+            <option value="library">Central Library</option>
+            <option value="hostel-1">Hostel Block 1</option>
+            <option value="cafeteria">Cafeteria Complex</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Incharge Name:</label>
+          <input id="modal-name" type="text" placeholder="e.g. Prof. Sharma" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Role / Designation:</label>
+          <input id="modal-role" type="text" placeholder="e.g. Academic Dean / Floor Warden" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">WhatsApp / Mobile Number (with country code):</label>
+          <input id="modal-phone" type="text" placeholder="e.g. 919844012345" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-mono">
+        </div>
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-800 flex justify-end gap-2">
+        <button onclick="closeInchargeModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs">Cancel</button>
+        <button onclick="saveInchargeData()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-xs">Save Contact</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="flex flex-wrap justify-between items-center pb-4 border-b border-slate-800 mb-5 gap-3">
+    <div>
+      <div class="flex items-center gap-3">
+        <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+        <h1 class="text-xl font-black tracking-wide text-white">EcoPulse AI</h1>
+        <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">MULTI-REMOTE SENSING OS</span>
+      </div>
+      <p class="text-xs text-slate-400 mt-0.5">Cellular/Remote Mobile Camera Ingestion • Automated Incharge WhatsApp Dispatch</p>
+    </div>
+    <div class="flex items-center gap-3 text-xs font-mono">
+      <button onclick="openInchargeModal()" class="bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 px-3 py-1.5 rounded-lg text-cyan-300 font-semibold transition-all cursor-pointer">
+        👤 Edit Incharge Contacts
+      </button>
+      <button onclick="resetDemo()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-700 px-3 py-1.5 rounded-lg text-slate-200 font-semibold transition-all cursor-pointer">
+        ↺ Reset Demo State
+      </button>
+      <div class="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-slate-400 font-bold" id="clock">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- 1. Digital Twin Campus Nodes -->
+  <div class="mb-5">
+    <div class="flex justify-between items-center mb-2.5">
+      <h2 class="text-xs uppercase tracking-wider font-bold text-slate-400">1. Select Campus Zone (Click Card to View Live Camera)</h2>
+      <span class="text-[11px] text-cyan-400 font-mono">● Active Feed: <span id="current-active-feed-label">Academic Block A</span></span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3.5" id="campus-nodes-grid">
+      <!-- Injected by JavaScript -->
+    </div>
+  </div>
+
+  <!-- 2 & 3. AI Diagnostic Agent + Live Camera Stream -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-5 items-stretch">
+    
+    <!-- Autonomous AI Diagnostic Agent Card -->
+    <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between pb-2.5 border-b border-slate-800 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+            <h3 class="font-bold text-white text-sm">Autonomous AI Diagnostic Agent</h3>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded">REASONING CORE</span>
+        </div>
+
+        <div id="ai-agent-body" class="space-y-3">
+          <!-- Active Incident Card -->
+          <div class="bg-rose-950/30 border border-rose-900/60 p-3.5 rounded-lg">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] uppercase font-bold text-rose-400">Empty Room Anomaly Detected</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 bg-rose-500/20 text-rose-300 rounded border border-rose-500/30">SEV-1 CRITICAL</span>
+            </div>
+            <div class="text-sm font-semibold text-white mt-0.5" id="agent-anomaly-title">Academic Block A: 42 kW Leakage</div>
+            <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
+              <strong class="text-slate-100">AI Vision:</strong> 0 people detected in Room 402. HVAC and lights drawing peak load off-schedule.
+            </p>
+            <div class="grid grid-cols-2 gap-2 mt-2.5 pt-2.5 border-t border-rose-900/40 text-xs">
+              <div>
+                <span class="text-slate-400 text-[11px]">Carbon Penalty:</span>
+                <div class="font-bold text-rose-400 text-sm">+128 kg CO₂/day</div>
+              </div>
+              <div>
+                <span class="text-slate-400 text-[11px]">Financial Leak:</span>
+                <div class="font-bold text-rose-400 text-sm">₹3,840 / 6 hrs</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Incharge Notification Widget -->
+          <div class="bg-slate-950/70 border border-slate-800 p-3 rounded-lg flex items-center justify-between">
+            <div>
+              <div class="text-[10px] uppercase font-bold text-slate-500">Zone Incharge Alert Contact</div>
+              <div class="text-xs font-bold text-white mt-0.5" id="incharge-display-name">Prof. Sharma (Academic Dean)</div>
+              <div class="text-[11px] text-slate-400 font-mono" id="incharge-display-phone">+91 9844012345</div>
+            </div>
+            <button onclick="sendWhatsAppDispatch()" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md">
+              <span>💬 Push WhatsApp</span>
+            </button>
+          </div>
+
+          <!-- Microgrid Breaker Status Telemetry -->
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="bg-slate-950/70 border border-slate-800 p-2 rounded-lg">
+              <div class="text-[9px] uppercase font-bold text-slate-500">Wireless Remote</div>
+              <div class="text-xs font-mono font-bold text-cyan-400 mt-0.5">LTE / 5G / Cam</div>
+            </div>
+            <div class="bg-slate-950/70 border border-slate-800 p-2 rounded-lg">
+              <div class="text-[9px] uppercase font-bold text-slate-500">Trip Latency</div>
+              <div class="text-xs font-mono font-bold text-emerald-400 mt-0.5">&lt; 45ms</div>
+            </div>
+            <div class="bg-slate-950/70 border border-slate-800 p-2 rounded-lg">
+              <div class="text-[9px] uppercase font-bold text-slate-500">Occupancy</div>
+              <div class="text-xs font-mono font-bold text-rose-400 mt-0.5">0 PERSONS</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3 pt-2.5 border-t border-slate-800">
+        <button id="relay-btn" onclick="executeRelayTrigger('block-a')" class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 active:scale-95 font-bold text-white text-xs tracking-wider uppercase rounded-lg transition-all shadow-lg shadow-emerald-950 flex items-center justify-center gap-2 cursor-pointer">
+          <span>⚡ Trigger Automated Cutoff & Save Power</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Multi-Stream Camera & Waste Vision Scanner -->
+    <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+      <div>
+        <div class="flex justify-between items-center pb-2.5 border-b border-slate-800 mb-2.5">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+            <h3 class="font-bold text-white text-sm" id="camera-stream-heading">Live Camera Feed: Academic Block A</h3>
+          </div>
+          <span class="text-[11px] text-slate-400 font-mono" id="vision-mode-badge">Remote Ingestion • YOLOv8 Edge Active</span>
+        </div>
+
+        <!-- Live Camera Viewport -->
+        <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-slate-800 mb-3 flex items-center justify-center shadow-inner" id="vision-display-area">
+          <img id="live-stream-img" src="http://127.0.0.1:8000/video_feed/block-a" 
+               alt="Live Node Feed"
+               class="w-full h-full object-cover" />
+        </div>
+
+        <!-- Presets & Manual Test Triggers -->
+        <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-[11px] font-semibold text-slate-300">Auditing Streams & Waste Presets:</span>
+            <button onclick="switchToLiveCamera()" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-800 font-mono cursor-pointer">
+              🎥 Back to Live Stream
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-2.5">
+            <button onclick="showPreset('contaminated')" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 active:scale-95 border border-rose-900/60 text-rose-300 text-xs rounded-lg font-medium text-left transition-all cursor-pointer">
+              ⚠ <strong>Cafeteria Wet Bin:</strong> Plastic Contamination
+            </button>
+            <button onclick="showPreset('clean')" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 active:scale-95 border border-emerald-900/60 text-emerald-300 text-xs rounded-lg font-medium text-left transition-all cursor-pointer">
+              ✓ <strong>Hostel 1 Station:</strong> 100% Organic Audit
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Persistent SQLite Audit Ledger -->
+  <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
+    <div class="flex justify-between items-center mb-2.5">
+      <h3 class="font-bold text-white text-xs uppercase tracking-wider">Persistent SQLite Compliance & Intervention Ledger</h3>
+      <span class="text-[11px] text-slate-500 font-mono">Real-Time DB Sync</span>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-slate-800/60 uppercase font-semibold text-slate-400 border-b border-slate-700">
+          <tr>
+            <th class="py-2 px-3">Timestamp</th>
+            <th class="py-2 px-3">Audit Source</th>
+            <th class="py-2 px-3">Entity / Action</th>
+            <th class="py-2 px-3">Status</th>
+            <th class="py-2 px-3">Impact / Action Taken</th>
+          </tr>
+        </thead>
+        <tbody id="logs-table" class="divide-y divide-slate-800 text-slate-300 font-mono">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let activeZone = "block-a";
+    let inchargeDirectory = {};
+
+    setInterval(() => {
+      const clockEl = document.getElementById('clock');
+      if (clockEl) clockEl.innerText = new Date().toLocaleTimeString();
+    }, 1000);
+
+    // Fetch and load incharge directory
+    async function loadIncharges() {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/incharges");
+        inchargeDirectory = await res.json();
+        updateInchargeDisplay();
+      } catch (e) {}
+    }
+
+    function updateInchargeDisplay() {
+      const data = inchargeDirectory[activeZone] || { name: "Campus Officer", role: "Duty Warden", phone: "919844012345" };
+      document.getElementById("incharge-display-name").innerText = `${data.name} (${data.role})`;
+      document.getElementById("incharge-display-phone").innerText = `+${data.phone}`;
+    }
+
+    function openInchargeModal() {
+      document.getElementById("incharge-modal").classList.remove("hidden");
+      document.getElementById("modal-zone-id").value = activeZone;
+      const data = inchargeDirectory[activeZone] || { name: "", role: "", phone: "" };
+      document.getElementById("modal-name").value = data.name;
+      document.getElementById("modal-role").value = data.role;
+      document.getElementById("modal-phone").value = data.phone;
+    }
+
+    function closeInchargeModal() {
+      document.getElementById("incharge-modal").classList.add("hidden");
+    }
+
+    async function saveInchargeData() {
+      const zid = document.getElementById("modal-zone-id").value;
+      const name = encodeURIComponent(document.getElementById("modal-name").value);
+      const role = encodeURIComponent(document.getElementById("modal-role").value);
+      const phone = encodeURIComponent(document.getElementById("modal-phone").value);
+
+      await fetch(`http://127.0.0.1:8000/api/incharges/${zid}?name=${name}&role=${role}&phone=${phone}`, { method: 'POST' });
+      closeInchargeModal();
+      await loadIncharges();
+      loadLogs();
+    }
+
+    // Direct WhatsApp Dispatch Integration
+    async function sendWhatsAppDispatch() {
+      try {
+        const res = await fetch(`http://127.0.0.1:8000/api/notify/whatsapp/${activeZone}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.whatsapp_url) {
+          window.open(data.whatsapp_url, '_blank');
+        }
+        loadLogs();
+      } catch (e) {
+        alert("Failed to connect to notification gateway.");
+      }
+    }
+
+    function switchCameraFeed(zoneId, zoneName) {
+      activeZone = zoneId;
+      document.getElementById("current-active-feed-label").innerText = zoneName;
+      document.getElementById("camera-stream-heading").innerText = `Live Camera Feed: ${zoneName}`;
+      
+      const streamImg = document.getElementById("live-stream-img");
+      if (streamImg) {
+        streamImg.src = `http://127.0.0.1:8000/video_feed/${zoneId}?t=${Date.now()}`;
+      }
+      updateInchargeDisplay();
+      loadCampus();
+    }
+
+    async function loadCampus() {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/campus");
+        const nodes = await res.json();
+        const container = document.getElementById("campus-nodes-grid");
+        if (!container) return;
+
+        container.innerHTML = nodes.map(n => {
+          const isSelected = n.id === activeZone;
+          const isCritical = n.status === "CRITICAL";
+          const isWarning = n.status === "WARNING";
+          
+          const ringClass = isSelected ? "ring-2 ring-cyan-400 shadow-cyan-950/80 shadow-lg" : "";
+          const borderClass = isCritical 
+            ? "border-rose-600 bg-rose-950/20" 
+            : isWarning 
+            ? "border-amber-600 bg-amber-950/20" 
+            : "border-slate-800 bg-slate-900";
+          
+          const badgeClass = isCritical 
+            ? "bg-rose-500/20 text-rose-400 border-rose-500/30" 
+            : isWarning 
+            ? "bg-amber-500/20 text-amber-400 border-amber-500/30" 
+            : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+
+          return `
+            <div onclick="switchCameraFeed('${n.id}', '${n.name}')" class="border ${borderClass} ${ringClass} rounded-xl p-3.5 transition-all relative overflow-hidden cursor-pointer hover:border-cyan-500">
+              ${isCritical ? '<div class="absolute -right-3 -top-3 w-10 h-10 rounded-full bg-rose-500/20 pulse-ring"></div>' : ''}
+              <div class="flex justify-between items-start mb-2">
+                <span class="font-bold text-white text-sm">${n.name}</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${badgeClass}">${n.status}</span>
+              </div>
+              <div class="space-y-1 text-xs text-slate-300 font-mono">
+                <div class="flex justify-between"><span class="text-slate-500">Power:</span> <strong>${n.power_kw} kW</strong></div>
+                <div class="flex justify-between"><span class="text-slate-500">Water Flow:</span> <strong>${n.water_lpm} L/min</strong></div>
+                <div class="flex justify-between"><span class="text-slate-500">HVAC Status:</span> <strong class="${isCritical ? 'text-rose-400 font-bold' : ''}">${n.hvac_status}</strong></div>
+                <div class="flex justify-between"><span class="text-slate-500">Waste Level:</span> <strong>${n.waste_level}</strong></div>
+              </div>
+              <div class="mt-2 text-[9px] font-bold text-cyan-400 flex items-center justify-between">
+                <span>📹 CLICK TO VIEW CAM</span>
+                ${isSelected ? '<span class="text-emerald-400">● LIVE</span>' : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {}
+    }
+
+    async function executeRelayTrigger(nodeId) {
+      try {
+        await fetch(`http://127.0.0.1:8000/api/relay/trigger/${nodeId}`, { method: 'POST' });
+        document.getElementById("ai-agent-body").innerHTML = `
+          <div class="bg-emerald-950/30 border border-emerald-900/60 p-3.5 rounded-lg">
+            <div class="text-[11px] uppercase font-bold text-emerald-400 mb-1">Power Isolated</div>
+            <div class="text-sm font-semibold text-white">Empty Room Load Disconnected</div>
+            <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
+              Automated circuit trip completed for unoccupied rooms. HVAC & lights deactivated. Saved 42 kW.
+            </p>
+            <div class="mt-2.5 pt-2 border-t border-emerald-900/40 text-xs font-bold text-emerald-400">
+              ✓ Carbon Saved: 128 kg CO₂/day • Financial Loss Prevented: ₹3,840
+            </div>
+          </div>
+        `;
+        const btn = document.getElementById("relay-btn");
+        if (btn) btn.classList.add("hidden");
+        loadCampus();
+        loadLogs();
+      } catch (e) {}
+    }
+
+    async function showPreset(type) {
+      await fetch(`http://127.0.0.1:8000/api/waste/simulate-audit?audit_type=${type}`, { method: 'POST' });
+      loadLogs();
+      const display = document.getElementById("vision-display-area");
+
+      if (type === 'contaminated') {
+        display.innerHTML = `
+          <div class="relative w-full h-full bg-slate-900 flex items-center justify-center overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1605600659908-0ef719419d41?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-85" />
+            <div class="absolute top-1/4 left-1/3 w-48 h-36 border-2 border-rose-500 rounded bg-rose-500/10 p-1.5 flex flex-col justify-between">
+              <span class="text-[10px] font-mono font-bold text-rose-300 bg-rose-950 px-1 rounded">PLASTIC BOTTLE 94%</span>
+              <span class="text-[9px] font-bold text-rose-400 bg-black/80 px-1 rounded">⚠ CONTAMINATED ORGANIC BIN</span>
+            </div>
+          </div>`;
+      } else {
+        display.innerHTML = `
+          <div class="relative w-full h-full bg-slate-900 flex items-center justify-center overflow-hidden">
+            <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-85" />
+            <div class="absolute top-1/3 left-1/4 w-52 h-40 border-2 border-emerald-400 rounded bg-emerald-500/10 p-1.5 flex flex-col justify-between">
+              <span class="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-950 px-1 rounded">100% ORGANIC 98%</span>
+              <span class="text-[9px] font-bold text-emerald-300 bg-black/80 px-1 rounded">✓ CLEAN RECYCLING VERIFIED</span>
+            </div>
+          </div>`;
+      }
+    }
+
+    function switchToLiveCamera() {
+      const display = document.getElementById("vision-display-area");
+      display.innerHTML = `
+        <img id="live-stream-img" src="http://127.0.0.1:8000/video_feed/${activeZone}?t=${Date.now()}" 
+             alt="Live Node Feed"
+             class="w-full h-full object-cover" />
+      `;
+    }
+
+    async function loadLogs() {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/api/logs");
+        const logs = await res.json();
+        const tbody = document.getElementById("logs-table");
+        if (!tbody) return;
+
+        if (logs.length > 0) {
+          tbody.innerHTML = logs.map(l => `
+            <tr class="hover:bg-slate-800/30">
+              <td class="py-2 px-3 text-slate-500 font-mono">${l.timestamp}</td>
+              <td class="py-2 px-3 font-semibold text-white">${l.source}</td>
+              <td class="py-2 px-3">${l.event}</td>
+              <td class="py-2 px-3">
+                <span class="px-1.5 py-0.5 rounded ${l.status.includes('RESOLVED') || l.status.includes('COMPLIANT') ? 'text-emerald-400 bg-emerald-950/60' : 'text-rose-400 bg-rose-950/60'}">${l.status}</span>
+              </td>
+              <td class="py-2 px-3 text-slate-300 font-bold">${l.impact}</td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {}
+    }
+
+    async function resetDemo() {
+      await fetch("http://127.0.0.1:8000/api/reset", { method: 'POST' });
+      location.reload();
+    }
+
+    setInterval(() => {
+      loadLogs();
+    }, 2500);
+
+    loadIncharges();
+    loadCampus();
+    loadLogs();
+  </script>
+</body>
+</html>
