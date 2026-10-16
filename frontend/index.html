@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EcoPulse.AI - DSU 3D Virtual Campus Digital Twin</title>
+  <title>EcoPulse.AI - Photorealistic 3D Spatial Campus Twin</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -39,14 +39,6 @@
       background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%) !important;
       box-shadow: 0 0 25px rgba(56, 189, 248, 0.35) !important;
     }
-    #threeDContainer canvas {
-      border-radius: 16px;
-      outline: none;
-      cursor: grab;
-    }
-    #threeDContainer canvas:active {
-      cursor: grabbing;
-    }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: #070a13; }
     ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
@@ -55,7 +47,7 @@
 </head>
 <body class="flex h-screen overflow-hidden">
 
-  <!-- ================= 1. SIDEBAR ================= -->
+  <!-- ================= SIDEBAR ================= -->
   <aside class="w-64 bg-[#080c18] border-r border-slate-800/80 text-white flex flex-col justify-between p-5 select-none shrink-0 shadow-2xl">
     <div>
       <div class="flex items-center space-x-3 mb-8 cursor-pointer" onclick="scrollToSection('dashboard-top')">
@@ -66,7 +58,7 @@
         </div>
         <div>
           <h1 class="font-black text-lg tracking-tight neon-text-gradient leading-none">DSU EcoPulse</h1>
-          <span class="text-[10px] text-cyan-300/70 font-mono-code font-bold uppercase tracking-wider">3D Real Digital Twin</span>
+          <span class="text-[10px] text-cyan-300/70 font-mono-code font-bold uppercase tracking-wider">Realistic 3D Spatial Twin</span>
         </div>
       </div>
 
@@ -81,24 +73,24 @@
         </button>
         <button onclick="scrollToSection('split-surveillance')" class="w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-slate-400 hover:bg-slate-800/50 hover:text-white transition">
           <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-          <span>3D Rotatable Scene</span>
+          <span>Photorealistic 3D Model</span>
         </button>
         <button onclick="scrollToSection('ledger-section')" class="w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-slate-400 hover:bg-slate-800/50 hover:text-white transition">
           <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-          <span>Audit Logs</span>
+          <span>Persistent Audit Logs</span>
         </button>
       </nav>
 
       <div class="mt-8 pt-6 border-t border-slate-800/80">
-        <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400 block mb-3 font-mono-code">Detection State</span>
+        <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400 block mb-3 font-mono-code">Architecture Node</span>
         <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 text-[11px] space-y-2 shadow-inner">
           <div class="flex items-center justify-between">
-            <span class="text-slate-400">Current Facility:</span>
-            <span id="activeModelBadge" class="text-cyan-300 font-bold font-mono-code text-[10px]">Lecture Hall</span>
+            <span class="text-slate-400">Current Room:</span>
+            <span id="activeModelBadge" class="text-cyan-300 font-bold font-mono-code text-[10px]">Auditorium</span>
           </div>
           <div class="flex items-center justify-between">
-            <span class="text-slate-400">Detection Status:</span>
-            <span id="activeRadarBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-700">GREEN</span>
+            <span class="text-slate-400">Detection State:</span>
+            <span id="activeRadarBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-700">RED WARNING</span>
           </div>
         </div>
       </div>
@@ -113,16 +105,16 @@
     </div>
   </aside>
 
-  <!-- ================= 2. MAIN VIEWPORT ================= -->
+  <!-- ================= MAIN VIEWPORT ================= -->
   <main class="flex-1 flex flex-col h-screen overflow-y-auto p-7">
     
     <header id="dashboard-top" class="flex justify-between items-center mb-6">
       <div>
         <div class="flex items-center space-x-3 mb-1">
           <h2 class="text-2xl font-black text-white tracking-tight">Dayananda Sagar University • School of Engineering</h2>
-          <span class="text-[10px] px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 font-bold uppercase tracking-widest font-mono-code">3D Spatial Reality Grid</span>
+          <span class="text-[10px] px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 font-bold uppercase tracking-widest font-mono-code">Detailed 3D Spatial Twin</span>
         </div>
-        <p class="text-xs text-slate-400 font-medium">True rotatable colored digital twin of actual DSU facilities with live YOLO occupancy detection</p>
+        <p class="text-xs text-slate-400 font-medium">Procedural custom architectural models with accurate furniture placement & dynamic CCTV radar cones</p>
       </div>
 
       <div class="flex items-center space-x-3">
@@ -142,7 +134,7 @@
       <div class="card-cyber p-5 border-l-4 border-l-cyan-400">
         <div class="flex justify-between items-center text-xs text-slate-400 font-semibold mb-2">
           <span>AI Occupants</span>
-          <span id="detectionBadge" class="text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-md text-[10px] font-mono-code font-bold border border-emerald-700">STATUS: SAFE</span>
+          <span id="detectionBadge" class="text-rose-400 bg-rose-950/80 px-2 py-0.5 rounded-md text-[10px] font-mono-code font-bold border border-rose-700">STATUS: UNATTENDED LEAK</span>
         </div>
         <div class="flex items-baseline space-x-2">
           <span id="metricOccupants" class="text-3xl font-black text-white font-mono-code">0</span>
@@ -192,14 +184,13 @@
       </div>
       
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <!-- 1. Block A -->
         <div id="card-block-a" onclick="selectZone('block-a')" class="card-cyber p-4 cursor-pointer transition active-zone-cyber">
           <div class="flex justify-between items-start mb-2">
             <div>
               <h4 class="font-bold text-xs text-white">Academic Block A</h4>
-              <span class="text-[10px] text-cyan-400 font-mono-code">Lecture Hall (Auditorium)</span>
+              <span class="text-[10px] text-cyan-400 font-mono-code">Smart Auditorium</span>
             </div>
-            <span id="badge-block-a" class="text-[10px] px-2 py-0.5 rounded-md font-bold font-mono-code bg-emerald-950/80 text-emerald-300 border border-emerald-800">0 People</span>
+            <span id="badge-block-a" class="text-[10px] px-2 py-0.5 rounded-md font-bold font-mono-code bg-rose-950/80 text-rose-300 border border-rose-800">0 People</span>
           </div>
           <div class="text-[11px] text-slate-400 mb-2">Lead: <span id="lead-block-a" class="text-cyan-300 font-semibold">Prof. Puneeth</span></div>
           <div class="flex justify-between items-center text-[11px] text-slate-400">
@@ -208,14 +199,13 @@
           </div>
         </div>
 
-        <!-- 2. Library -->
         <div id="card-library" onclick="selectZone('library')" class="card-cyber p-4 cursor-pointer transition hover:border-cyan-400/40">
           <div class="flex justify-between items-start mb-2">
             <div>
               <h4 class="font-bold text-xs text-white">Central Library</h4>
-              <span class="text-[10px] text-cyan-400 font-mono-code">Library_01 (Stacks)</span>
+              <span class="text-[10px] text-cyan-400 font-mono-code">Reading Stacks</span>
             </div>
-            <span id="badge-library" class="text-[10px] px-2 py-0.5 rounded-md font-bold font-mono-code bg-emerald-950/80 text-emerald-300 border border-emerald-800">0 People</span>
+            <span id="badge-library" class="text-[10px] px-2 py-0.5 rounded-md font-bold font-mono-code bg-rose-950/80 text-rose-300 border border-rose-800">0 People</span>
           </div>
           <div class="text-[11px] text-slate-400 mb-2">Lead: <span id="lead-library" class="text-cyan-300 font-semibold">Dr. Rao</span></div>
           <div class="flex justify-between items-center text-[11px] text-slate-400">
@@ -224,14 +214,13 @@
           </div>
         </div>
 
-        <!-- 3. Hostel -->
         <div id="card-hostel-1" onclick="selectZone('hostel-1')" class="card-cyber p-4 cursor-pointer transition hover:border-cyan-400/40">
           <div class="flex justify-between items-start mb-2">
             <div>
               <h4 class="font-bold text-xs text-white">Hostel Block 1</h4>
-              <span class="text-[10px] text-cyan-400 font-mono-code">Three Sharing Room</span>
+              <span class="text-[10px] text-cyan-400 font-mono-code">Student Dorm Suite</span>
             </div>
-            <span id="badge-hostel-1" class="text-[10px] px-2 py-0.5 rounded-md font-bold font-mono-code bg-emerald-950/80 text-emerald-300 border border-emerald-800">0 People</span>
+            <span id="badge-hostel-1" class="text-[10px] px-2 py-0.5 rounded-md font-bold font-mono-code bg-rose-950/80 text-rose-300 border border-rose-800">0 People</span>
           </div>
           <div class="text-[11px] text-slate-400 mb-2">Lead: <span id="lead-hostel-1" class="text-cyan-300 font-semibold">Warden Office</span></div>
           <div class="flex justify-between items-center text-[11px] text-slate-400">
@@ -240,14 +229,13 @@
           </div>
         </div>
 
-        <!-- 4. Cafeteria -->
         <div id="card-cafeteria" onclick="selectZone('cafeteria')" class="card-cyber p-4 cursor-pointer transition hover:border-cyan-400/40">
           <div class="flex justify-between items-start mb-2">
             <div>
               <h4 class="font-bold text-xs text-white">Cafeteria Complex</h4>
-              <span class="text-[10px] text-cyan-400 font-mono-code">Canteen & Mess</span>
+              <span class="text-[10px] text-cyan-400 font-mono-code">Dining & Buffet</span>
             </div>
-            <span id="badge-cafeteria" class="text-[10px] px-2 py-0.5 rounded-md font-bold font-mono-code bg-emerald-950/80 text-emerald-300 border border-emerald-800">0 People</span>
+            <span id="badge-cafeteria" class="text-[10px] px-2 py-0.5 rounded-md font-bold font-mono-code bg-rose-950/80 text-rose-300 border border-rose-800">0 People</span>
           </div>
           <div class="text-[11px] text-slate-400 mb-2">Lead: <span id="lead-cafeteria" class="text-cyan-300 font-semibold">Estate Manager</span></div>
           <div class="flex justify-between items-center text-[11px] text-slate-400">
@@ -258,10 +246,10 @@
       </div>
     </div>
 
-    <!-- ================= 3. SPLIT HERO: STREAM + 3D REAL-WORLD DIGITAL TWIN ================= -->
+    <!-- Split surveillance section -->
     <div id="split-surveillance" class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
       
-      <!-- LEFT: Live Video Feed (5 Cols) -->
+      <!-- Live Video Feed (Direct to Port 8000 backend) -->
       <div class="lg:col-span-5 card-cyber p-5 flex flex-col justify-between">
         <div>
           <div class="flex justify-between items-center mb-3">
@@ -285,41 +273,29 @@
         </div>
       </div>
 
-      <!-- RIGHT: Interactive 3D Real-World Colored Digital Twin (7 Cols) -->
+      <!-- 3D Spatial Architectural Twin with Downward Radar Cone -->
       <div class="lg:col-span-7 card-cyber p-5 flex flex-col justify-between relative overflow-hidden">
         <div>
           <div class="flex justify-between items-center mb-3">
             <div class="flex items-center space-x-2">
-              <span id="threeDStatusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-              <h4 id="threeDHeading" class="text-sm font-bold text-white">3D Real Digital Twin: Academic Block A</h4>
+              <span id="threeDStatusDot" class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+              <h4 id="threeDHeading" class="text-sm font-bold text-white">3D Spatial Twin: Academic Block A</h4>
             </div>
-            <span id="threeDModeTag" class="text-[10px] font-bold px-2.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-600 font-mono-code">
-              DETECTION: GREEN (SAFE)
+            <span id="threeDModeTag" class="text-[10px] font-bold px-2.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-600 font-mono-code">
+              DETECTION: RED (ENERGY LEAKAGE)
             </span>
           </div>
 
-          <!-- WebGL Canvas Container -->
-          <div id="threeDContainer" class="w-full h-[410px] rounded-2xl overflow-hidden border border-cyan-500/30 relative bg-[#02050f] shadow-2xl flex items-center justify-center">
-            
-            <!-- Sensor Telemetry Overlay -->
-            <div id="sensorHudCard" class="absolute top-4 left-4 max-w-xs p-3.5 rounded-2xl bg-black/85 backdrop-blur-md border border-cyan-500/50 text-white shadow-2xl pointer-events-none transition-all">
-              <div class="flex items-center space-x-2 mb-1">
-                <span id="hudRadarDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                <span id="hudZoneName" class="text-xs font-bold text-cyan-300">Lecture Hall (Auditorium)</span>
-              </div>
-              <p id="hudZoneDesc" class="text-[10px] text-slate-300 leading-tight mb-2">
-                Real 3D room environment synchronized with edge YOLO computer vision and energy relays.
-              </p>
-              <div class="flex items-center justify-between pt-2 border-t border-slate-700/60 text-[10px] font-mono-code">
-                <span class="text-slate-400">Persons: <strong id="hudPersonCount" class="text-emerald-400">0</strong></span>
-                <span class="text-slate-400">Power: <strong id="hudPower" class="text-cyan-300">4.2 kW</strong></span>
-              </div>
+          <div class="w-full h-[410px] rounded-2xl overflow-hidden border border-slate-800 relative bg-[#02050f] shadow-2xl">
+            <div id="threeContainer" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+
+            <div class="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-black/85 backdrop-blur-md border border-cyan-500/40 text-[10px] font-mono-code text-cyan-300 pointer-events-none shadow-xl tracking-wider">
+              FACILITY: <span id="rigLabel" class="font-bold text-white uppercase">AUDITORIUM - STADIUM RISERS & PODIUM</span>
             </div>
 
-            <!-- Drag Prompt Badge -->
-            <div class="absolute bottom-3 right-4 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-[10px] font-mono-code text-cyan-300 pointer-events-none shadow-lg flex items-center space-x-2">
-              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-              <span>🖱️ Drag to rotate 3D view</span>
+            <div class="absolute bottom-3 right-4 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-[10px] font-mono-code pointer-events-none shadow-lg flex items-center space-x-2">
+              <span id="radarDot" class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+              <span id="radarLabel" class="text-rose-400 font-bold">RADAR FOV: UNATTENDED DRAW (RED)</span>
             </div>
           </div>
         </div>
@@ -335,18 +311,16 @@
               <span class="text-[11px] text-slate-300">Red = Unattended Wastage</span>
             </span>
           </div>
-          <button onclick="reset3DCamera()" class="text-xs font-bold text-cyan-400 hover:text-cyan-300 hover:underline">
-            🔄 Reset 3D View
+          <button onclick="resetCameraAngle()" class="text-xs font-mono-code text-cyan-400 hover:text-cyan-300 font-bold">
+            🔄 Reset 3D Angle
           </button>
         </div>
       </div>
 
     </div>
 
-    <!-- ================= 4. TELEMETRY, FACULTY ROUTING & ISOLATION ================= -->
+    <!-- Anomaly reasoning and metrics -->
     <div id="telemetry-section" class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-      
-      <!-- Anomaly Diagnosis & Incharge Alert Dispatch (6 Cols) -->
       <div class="lg:col-span-6 card-cyber p-5 flex flex-col justify-between">
         <div>
           <div class="flex justify-between items-center mb-3">
@@ -387,7 +361,6 @@
         </button>
       </div>
 
-      <!-- Real-time Energy Trends Chart (6 Cols) -->
       <div class="lg:col-span-6 card-cyber p-5 flex flex-col justify-between">
         <div class="flex justify-between items-center mb-3">
           <h4 class="text-sm font-bold text-white">Load Profile & Carbon Efficiency</h4>
@@ -410,10 +383,9 @@
           </div>
         </div>
       </div>
-
     </div>
 
-    <!-- ================= 5. SQLITE AUDIT LEDGER ================= -->
+    <!-- SQLite Ledger -->
     <div id="ledger-section" class="card-cyber p-5">
       <div class="flex justify-between items-center mb-4">
         <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono-code">Persistent SQLite Compliance Ledger</h4>
@@ -510,8 +482,8 @@
     </div>
   </div>
 
-  <!-- ================= 3D CANVAS & ROTATION SCRIPTS ================= -->
   <script>
+    const API_BASE = "http://127.0.0.1:8000";
     let currentSelectedZone = "block-a";
     let campusState = {
       "block-a": { name: "Academic Block A", occupants: 0, lights_on: true, fans_on: true, power_draw: "4.2 kW", incharge_name: "Prof. Puneeth Kumar", incharge_phone: "916361114713" },
@@ -531,211 +503,393 @@
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
 
-    /* ---------------- THREE.JS 3D ROTATABLE ENVIRONMENT ENGINE ---------------- */
-    let threeScene, threeCamera, threeRenderer, sphereMesh;
-    let isUserInteracting = false, onPointerDownPointerX = 0, onPointerDownPointerY = 0, onPointerDownLon = 0, onPointerDownLat = 0;
-    let lon = 0, lat = 0, phi = 0, theta = 0;
+    // =========================================================================
+    // COLORFUL REALISTIC 3D ARCHITECTURAL ROOM ENGINE
+    // =========================================================================
+    let scene, camera, renderer, roomGroup;
+    let cameraMountMesh, fovConeMesh, fovSpotLight, fovGroundRing;
+    let isDragging = false;
+    let prevMouse = { x: 0, y: 0 };
 
-    // High-resolution procedural environment canvases replicating exact uploaded images
-    function generatePhotorealisticTexture(zoneKey) {
-      const canvas = document.createElement("canvas");
-      canvas.width = 2048;
-      canvas.height = 1024;
-      const ctx = canvas.getContext("2d");
-
-      if (zoneKey === "block-a") {
-        // EXACT AUDITORIUM (Screenshot 734)
-        // Walls & Ceiling
-        ctx.fillStyle = "#8d5b4c"; // Wood wall paneling
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Ceiling grid with bright square LED lights
-        ctx.fillStyle = "#1e2430";
-        ctx.fillRect(0, 0, canvas.width, 360);
-        ctx.fillStyle = "#ffffff";
-        for (let x = 120; x < canvas.width; x += 180) {
-          for (let y = 40; y < 340; y += 90) {
-            ctx.fillRect(x, y, 70, 45);
-          }
-        }
-
-        // Stepped Stadium Desks & Blue Fabric Seats
-        ctx.fillStyle = "#cca27a"; // Carpet floor
-        ctx.fillRect(0, 360, canvas.width, 664);
-
-        for (let row = 0; row < 6; row++) {
-          const yPos = 400 + row * 90;
-          ctx.fillStyle = "#334155"; // Seats
-          ctx.fillRect(200, yPos, canvas.width - 400, 35);
-          ctx.fillStyle = "#cbd5e1"; // Desks
-          ctx.fillRect(160, yPos + 35, canvas.width - 320, 25);
-        }
-      } 
-      else if (zoneKey === "library") {
-        // EXACT CENTRAL LIBRARY (Screenshot 735)
-        ctx.fillStyle = "#f1ece4"; // Off-white walls
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Ceiling with square LED lights and white fans
-        ctx.fillStyle = "#e2d9cc";
-        ctx.fillRect(0, 0, canvas.width, 340);
-        ctx.fillStyle = "#ffffff";
-        for (let x = 100; x < canvas.width; x += 220) {
-          ctx.fillRect(x, 60, 110, 80);
-          ctx.fillRect(x, 200, 110, 80);
-        }
-
-        // Red Endcap Bookcase Aisles (Exact matching screenshot 735)
-        for (let b = 150; b < canvas.width - 200; b += 320) {
-          ctx.fillStyle = "#dc2626"; // Vibrant Red Shelving Endcaps
-          ctx.fillRect(b, 350, 180, 500);
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(b + 20, 380, 140, 40); // Number labels
-        }
-
-        // Carpet floor
-        ctx.fillStyle = "#3d4246";
-        ctx.fillRect(0, 750, canvas.width, 274);
-      }
-      else if (zoneKey === "hostel-1") {
-        // EXACT THREE SHARING DORM ROOM (Screenshot 737)
-        ctx.fillStyle = "#f5eee6"; // Cream dorm walls
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Tile Floor
-        ctx.fillStyle = "#dcd6cd";
-        ctx.fillRect(0, 680, canvas.width, 344);
-
-        // Center Multi-tier Wooden Study Rack
-        ctx.fillStyle = "#334155"; // Dark metal frame
-        ctx.fillRect(920, 220, 20, 520);
-        ctx.fillRect(1100, 220, 20, 520);
-        ctx.fillStyle = "#b45309"; // Warm wood desk shelves
-        ctx.fillRect(920, 290, 200, 25);
-        ctx.fillRect(920, 400, 200, 25);
-        ctx.fillRect(880, 490, 280, 45); // Main desktop
-        ctx.fillStyle = "#1e293b"; // Black study chair
-        ctx.fillRect(960, 560, 120, 160);
-
-        // Left & Right Red Quilted Mattresses (Exact matching screenshot 737)
-        ctx.fillStyle = "#991b1b"; // Deep red/maroon quilted mattress
-        ctx.fillRect(200, 580, 640, 170);
-        ctx.fillRect(1200, 580, 640, 170);
-      }
-      else if (zoneKey === "cafeteria") {
-        // EXACT CANTEEN & MESS (Screenshot 736)
-        ctx.fillStyle = "#e2e8f0"; // Bright dining hall
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Wide Glass Windows & Pillar columns
-        ctx.fillStyle = "#64748b";
-        for (let w = 80; w < canvas.width; w += 350) {
-          ctx.fillRect(w, 120, 240, 300);
-        }
-
-        // Tiled floor
-        ctx.fillStyle = "#cbd5e1";
-        ctx.fillRect(0, 480, canvas.width, 544);
-
-        // Polished Grey Granite Dining Tables & Chairs (Screenshot 736)
-        for (let r = 0; r < 4; r++) {
-          const y = 520 + r * 110;
-          ctx.fillStyle = "#475569"; // Granite texture table
-          ctx.fillRect(140, y, canvas.width - 280, 55);
-          ctx.fillStyle = "#0f172a"; // Black dining chairs
-          for (let c = 160; c < canvas.width - 300; c += 120) {
-            ctx.fillRect(c, y - 35, 60, 35);
-            ctx.fillRect(c, y + 55, 60, 35);
-          }
-        }
-      }
-
-      return new THREE.CanvasTexture(canvas);
-    }
+    const rigSubtitles = {
+      "block-a": "AUDITORIUM • STADIUM RISERS, PODIUM & ACOUSTIC WALLS",
+      "library": "CENTRAL LIBRARY • BOOK STACKS, READING DESKS & LAMPS",
+      "hostel-1": "HOSTEL BLOCK 1 • STUDENT TWIN DORM, BEDS & WARDROBE",
+      "cafeteria": "CAFETERIA COMPLEX • STAINLESS BUFFET & BISTRO SEATING"
+    };
 
     function init3DRoomEngine() {
-      const container = document.getElementById("threeDContainer");
-      const width = container.clientWidth;
-      const height = container.clientHeight;
+      const container = document.getElementById('threeContainer');
+      const w = container.clientWidth || 600;
+      const h = container.clientHeight || 410;
 
-      threeScene = new THREE.Scene();
-      threeCamera = new THREE.PerspectiveCamera(75, width / height, 1, 1200);
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x060914);
 
-      threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      threeRenderer.setSize(width, height);
-      threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      container.appendChild(threeRenderer.domElement);
+      camera = new THREE.PerspectiveCamera(36, w / h, 0.1, 100);
+      resetCameraAngle();
 
-      // Inverted 360° Sphere Geometry for full immersion
-      const sphereGeo = new THREE.SphereGeometry(500, 60, 40);
-      sphereGeo.scale(-1, 1, 1);
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
 
-      const sphereMat = new THREE.MeshBasicMaterial({ map: generatePhotorealisticTexture("block-a") });
-      sphereMesh = new THREE.Mesh(sphereGeo, sphereMat);
-      threeScene.add(sphereMesh);
+      // Balanced Studio Lighting
+      const amb = new THREE.AmbientLight(0xffffff, 0.65);
+      scene.add(amb);
 
-      // Mouse & Drag Orbit Listeners
-      container.addEventListener('pointerdown', (e) => {
-        isUserInteracting = true;
-        onPointerDownPointerX = e.clientX;
-        onPointerDownPointerY = e.clientY;
-        onPointerDownLon = lon;
-        onPointerDownLat = lat;
+      const sun = new THREE.DirectionalLight(0xe0f2fe, 1.2);
+      sun.position.set(10, 16, 12);
+      sun.castShadow = true;
+      sun.shadow.mapSize.width = 1024;
+      sun.shadow.mapSize.height = 1024;
+      scene.add(sun);
+
+      const fillLight = new THREE.DirectionalLight(0x818cf8, 0.4);
+      fillLight.position.set(-10, 8, -8);
+      scene.add(fillLight);
+
+      // Architectural Room Group
+      roomGroup = new THREE.Group();
+      scene.add(roomGroup);
+
+      // Mount Downward CCTV Camera & Volumetric FOV Cone
+      setupCameraNodeWithCone();
+
+      // Mouse drag controls
+      container.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        prevMouse = { x: e.clientX, y: e.clientY };
+      });
+      window.addEventListener('mouseup', () => { isDragging = false; });
+      container.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - prevMouse.x;
+        const dy = e.clientY - prevMouse.y;
+        roomGroup.rotation.y += dx * 0.007;
+        camera.position.y = Math.max(2.5, Math.min(15, camera.position.y - dy * 0.035));
+        camera.lookAt(0, 1.2, 0);
+        prevMouse = { x: e.clientX, y: e.clientY };
       });
 
-      window.addEventListener('pointermove', (e) => {
-        if (!isUserInteracting) return;
-        lon = (onPointerDownPointerX - e.clientX) * 0.15 + onPointerDownLon;
-        lat = (e.clientY - onPointerDownPointerY) * 0.15 + onPointerDownLat;
-      });
+      window.addEventListener('resize', onWindowResize);
 
-      window.addEventListener('pointerup', () => { isUserInteracting = false; });
-
-      window.addEventListener('resize', () => {
-        if (!container) return;
-        const w = container.clientWidth;
-        const h = container.clientHeight;
-        threeCamera.aspect = w / h;
-        threeCamera.updateProjectionMatrix();
-        threeRenderer.setSize(w, h);
-      });
-
+      buildArchitecturalRoom(currentSelectedZone);
       animate();
     }
 
-    function reset3DCamera() {
-      lon = 0;
-      lat = 0;
+    function resetCameraAngle() {
+      camera.position.set(11, 10, 13);
+      camera.lookAt(0, 1.2, 0);
+      if (roomGroup) roomGroup.rotation.y = 0.25;
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('threeContainer');
+      if (!container || !camera || !renderer) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    }
+
+    function setupCameraNodeWithCone() {
+      // CCTV Mount Fixed high at the top corner
+      const mountGroup = new THREE.Group();
+      mountGroup.position.set(-4.5, 4.4, 4.5);
+
+      const armGeom = new THREE.CylinderGeometry(0.04, 0.04, 0.4, 16);
+      const armMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.9, roughness: 0.2 });
+      const arm = new THREE.Mesh(armGeom, armMat);
+      mountGroup.add(arm);
+
+      const domeGeom = new THREE.SphereGeometry(0.24, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+      const domeMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.8, roughness: 0.3 });
+      cameraMountMesh = new THREE.Mesh(domeGeom, domeMat);
+      cameraMountMesh.rotation.x = Math.PI;
+      cameraMountMesh.position.y = -0.2;
+      mountGroup.add(cameraMountMesh);
+      scene.add(mountGroup);
+
+      // Downward Pointing Volumetric Cone
+      const coneGeom = new THREE.ConeGeometry(3.8, 8.2, 32, 1, true);
+      coneGeom.translate(0, -4.1, 0);
+      coneGeom.rotateX(-Math.PI / 2);
+
+      const coneMat = new THREE.MeshBasicMaterial({
+        color: 0xf43f5e,
+        transparent: true,
+        opacity: 0.35,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+      fovConeMesh = new THREE.Mesh(coneGeom, coneMat);
+      fovConeMesh.position.set(-4.5, 4.2, 4.5);
+      fovConeMesh.lookAt(0, 0.4, 0);
+      scene.add(fovConeMesh);
+
+      // Downward Concentric Scan Ring on Floor
+      const ringGeom = new THREE.RingGeometry(2.4, 2.7, 32);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0xf43f5e,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.5
+      });
+      fovGroundRing = new THREE.Mesh(ringGeom, ringMat);
+      fovGroundRing.rotation.x = -Math.PI / 2;
+      fovGroundRing.position.set(0, 0.04, 0);
+      scene.add(fovGroundRing);
+
+      // Directional Cone Spotlight
+      fovSpotLight = new THREE.SpotLight(0xf43f5e, 2.5, 20, Math.PI / 4.2, 0.4);
+      fovSpotLight.position.set(-4.5, 4.2, 4.5);
+      fovSpotLight.target.position.set(0, 0.5, 0);
+      scene.add(fovSpotLight);
+      scene.add(fovSpotLight.target);
+    }
+
+    // Material & Box Mesh Factory
+    function createBox(w, h, d, x, y, z, colorHex, opts = {}) {
+      const geom = new THREE.BoxGeometry(w, h, d);
+      const mat = new THREE.MeshStandardMaterial({
+        color: colorHex,
+        roughness: opts.roughness !== undefined ? opts.roughness : 0.4,
+        metalness: opts.metalness !== undefined ? opts.metalness : 0.2,
+        emissive: opts.emissive || 0x000000,
+        emissiveIntensity: opts.emissiveIntensity || 0.0,
+        transparent: opts.transparent || false,
+        opacity: opts.opacity !== undefined ? opts.opacity : 1.0
+      });
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      roomGroup.add(mesh);
+      return mesh;
+    }
+
+    function createCylinder(rTop, rBot, h, x, y, z, colorHex, opts = {}) {
+      const geom = new THREE.CylinderGeometry(rTop, rBot, h, 24);
+      const mat = new THREE.MeshStandardMaterial({
+        color: colorHex,
+        roughness: opts.roughness || 0.3,
+        metalness: opts.metalness || 0.4,
+        emissive: opts.emissive || 0x000000,
+        emissiveIntensity: opts.emissiveIntensity || 0.0
+      });
+      const mesh = new THREE.Mesh(geom, mat);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      roomGroup.add(mesh);
+      return mesh;
+    }
+
+    function buildArchitecturalRoom(zoneKey) {
+      // Clear old room geometries
+      while (roomGroup.children.length > 0) {
+        roomGroup.remove(roomGroup.children[0]);
+      }
+
+      // -------------------------------------------------------------
+      // ROOM ARCHITECTURE FOUNDATION
+      // -------------------------------------------------------------
+      // Flooring: Polished Dark Slate
+      createBox(9.6, 0.2, 9.6, 0, -0.1, 0, 0x0f172a, { roughness: 0.3, metalness: 0.4 });
+      
+      // Walls: Modern Architectural Matte Panels
+      createBox(9.6, 3.4, 0.3, 0, 1.7, -4.7, 0x1e293b, { roughness: 0.8 }); // Back Wall
+      createBox(0.3, 3.4, 9.6, -4.7, 1.7, 0, 0x1e293b, { roughness: 0.8 }); // Left Wall
+
+      // Wall Baseboard Trims
+      createBox(9.6, 0.15, 0.35, 0, 0.08, -4.68, 0x38bdf8, { roughness: 0.2, metalness: 0.8 });
+      createBox(0.35, 0.15, 9.6, -4.68, 0.08, 0, 0x38bdf8, { roughness: 0.2, metalness: 0.8 });
+
+      // -------------------------------------------------------------
+      // 1. SMART AUDITORIUM (Academic Block A)
+      // -------------------------------------------------------------
+      if (zoneKey === "block-a") {
+        // Wooden Stage Flooring
+        createBox(8.4, 0.35, 2.4, 0, 0.18, -3.2, 0x78350f, { roughness: 0.4 });
+
+        // Giant 4K Auditorium Projection Screen with Neon Glow
+        createBox(5.6, 2.3, 0.1, 0, 2.2, -4.5, 0x0369a1, {
+          emissive: 0x38bdf8,
+          emissiveIntensity: 0.45,
+          roughness: 0.2
+        });
+        createBox(5.8, 2.45, 0.08, 0, 2.2, -4.52, 0x0f172a); // Screen Frame
+
+        // Executive Speaker Podium (Dark Walnut & Acrylic Face)
+        createBox(0.9, 1.1, 0.7, 2.6, 0.75, -2.7, 0x451a03, { roughness: 0.3 });
+        createBox(0.8, 0.9, 0.05, 2.6, 0.75, -2.33, 0x38bdf8, { emissive: 0x0284c7, emissiveIntensity: 0.3 });
+
+        // Tiered Stadium Seating Risers
+        for (let row = 0; row < 3; row++) {
+          const zRiser = -1.0 + (row * 1.6);
+          const yPlatform = 0.2 + (row * 0.28);
+          // Concrete Riser Platform
+          createBox(8.0, 0.25, 1.3, 0, yPlatform, zRiser, 0x1e293b, { roughness: 0.6 });
+
+          // Plush Navy Auditorium Seats with Armrests
+          for (let s = -3; s <= 3; s++) {
+            const xSeat = s * 1.15;
+            // Velvet Seat Cushion (Navy)
+            createBox(0.65, 0.16, 0.55, xSeat, yPlatform + 0.32, zRiser, 0x1d4ed8, { roughness: 0.8 });
+            // Seat Backrest
+            createBox(0.65, 0.55, 0.12, xSeat, yPlatform + 0.62, zRiser - 0.24, 0x1e40af, { roughness: 0.8 });
+            // Metallic Stanchion Leg
+            createBox(0.08, 0.35, 0.08, xSeat, yPlatform + 0.18, zRiser, 0x94a3b8, { metalness: 0.8 });
+          }
+        }
+      }
+
+      // -------------------------------------------------------------
+      // 2. CENTRAL LIBRARY (Reading Stacks & Study Corrals)
+      // -------------------------------------------------------------
+      else if (zoneKey === "library") {
+        // Tall Solid Oak Bookshelves (3 Rows)
+        const stackCols = [-2.6, 0.0, 2.6];
+        stackCols.forEach(xStack => {
+          // Main Bookshelf Shell
+          createBox(1.1, 2.8, 4.4, xStack, 1.4, -1.8, 0x9a3412, { roughness: 0.4 });
+
+          // Shelving Dividers & Multicolor Books
+          const bookColors = [0xef4444, 0x3b82f6, 0x10b981, 0xf59e0b, 0x8b5cf6, 0xec4899];
+          for (let shelf = 0; shelf < 4; shelf++) {
+            const yShelf = 0.5 + (shelf * 0.65);
+            createBox(0.95, 0.06, 4.2, xStack, yShelf, -1.8, 0x451a03);
+
+            // Row of Books
+            for (let b = -3; b <= 3; b++) {
+              const bColor = bookColors[Math.abs(b + shelf) % bookColors.length];
+              createBox(0.8, 0.38, 0.35, xStack, yShelf + 0.22, -1.8 + (b * 0.55), bColor, { roughness: 0.7 });
+            }
+          }
+        });
+
+        // Communal Wooden Study Table
+        createBox(7.2, 0.1, 1.4, 0, 0.75, 2.2, 0xd97706, { roughness: 0.3 }); // Oak tabletop
+        createBox(0.12, 0.75, 1.2, -3.2, 0.38, 2.2, 0x78350f); // Table Leg Left
+        createBox(0.12, 0.75, 1.2, 3.2, 0.38, 2.2, 0x78350f);  // Table Leg Right
+
+        // Glowing Brass Library Desktop Lamps
+        for (let lamp = -2; lamp <= 2; lamp += 2) {
+          createCylinder(0.04, 0.04, 0.35, lamp * 1.5, 0.95, 2.2, 0xf59e0b, { metalness: 0.8 });
+          createCylinder(0.2, 0.1, 0.15, lamp * 1.5, 1.15, 2.2, 0x10b981, { emissive: 0x34d399, emissiveIntensity: 0.4 });
+        }
+
+        // Student Ergonomic Chairs
+        for (let c = -3; c <= 3; c += 2) {
+          createBox(0.5, 0.08, 0.5, c * 1.1, 0.45, 3.1, 0x0284c7);
+          createBox(0.5, 0.4, 0.06, c * 1.1, 0.7, 3.32, 0x0284c7);
+          createBox(0.06, 0.45, 0.06, c * 1.1, 0.23, 3.1, 0x334155, { metalness: 0.8 });
+        }
+      }
+
+      // -------------------------------------------------------------
+      // 3. HOSTEL BLOCK 1 (Student Dorm Suite)
+      // -------------------------------------------------------------
+      else if (zoneKey === "hostel-1") {
+        // Twin Beds (Left Bed & Right Bed)
+        [[-2.6, "Bed A"], [2.6, "Bed B"]].forEach(([xBed]) => {
+          // Bed Wooden Frame
+          createBox(1.9, 0.4, 3.4, xBed, 0.22, -2.4, 0x78350f);
+          createBox(1.9, 1.1, 0.12, xBed, 0.58, -4.05, 0x9a3412); // Headboard
+
+          // Comfortable Mattress with Blue Quilt
+          createBox(1.7, 0.3, 3.1, xBed, 0.5, -2.4, 0x0284c7, { roughness: 0.8 });
+          // Folded Bed Duvet (Cyan Accent)
+          createBox(1.72, 0.12, 1.8, xBed, 0.66, -1.8, 0x38bdf8, { roughness: 0.7 });
+          // Pillow (Soft White)
+          createBox(1.2, 0.15, 0.6, xBed, 0.72, -3.4, 0xf8fafc, { roughness: 0.9 });
+        });
+
+        // Bedroom Floor Carpet Rug
+        createBox(2.8, 0.02, 3.6, 0, 0.02, -1.8, 0x334155, { roughness: 0.9 });
+
+        // Dual Study Desks & Laptops
+        createBox(3.4, 0.08, 1.2, 0, 0.75, 2.2, 0xfde047, { roughness: 0.4 }); // Birch table
+        createBox(0.08, 0.75, 1.0, -1.6, 0.38, 2.2, 0x334155);
+        createBox(0.08, 0.75, 1.0, 1.6, 0.38, 2.2, 0x334155);
+
+        // Open Laptop Displays
+        [-0.7, 0.7].forEach(xLap => {
+          createBox(0.45, 0.02, 0.35, xLap, 0.8, 2.2, 0x94a3b8, { metalness: 0.8 });
+          createBox(0.45, 0.3, 0.02, xLap, 0.95, 2.05, 0x38bdf8, { emissive: 0x38bdf8, emissiveIntensity: 0.5 });
+        });
+
+        // Modern Two-Door Clothing Wardrobe
+        createBox(1.4, 2.9, 1.2, -3.7, 1.45, 2.2, 0x475569, { roughness: 0.5 });
+        createBox(0.05, 0.5, 0.05, -3.05, 1.45, 2.2, 0xf59e0b, { metalness: 0.9 }); // Handle
+      }
+
+      // -------------------------------------------------------------
+      // 4. CAFETERIA COMPLEX (Dining Hall & Buffet Line)
+      // -------------------------------------------------------------
+      else if (zoneKey === "cafeteria") {
+        // Stainless-Steel Hot Buffet Food Bar
+        createBox(7.6, 0.9, 1.4, 0, 0.45, -3.6, 0x94a3b8, { metalness: 0.85, roughness: 0.2 });
+        createBox(7.6, 0.5, 0.05, 0, 1.15, -3.0, 0xbae6fd, { transparent: true, opacity: 0.5 }); // Glass sneeze-guard
+
+        // Food Warmer Chafing Trays with Food
+        const dishColors = [0xf97316, 0xeab308, 0xef4444, 0x22c55e, 0xa855f7];
+        for (let f = -2; f <= 2; f++) {
+          createBox(0.9, 0.15, 0.7, f * 1.35, 0.98, -3.6, 0xe2e8f0, { metalness: 0.9 });
+          createBox(0.8, 0.08, 0.6, f * 1.35, 1.05, -3.6, dishColors[f + 2], { roughness: 0.6 });
+        }
+
+        // Dining Bistro Clusters (4 Round Tables with Chairs)
+        const bistroSpots = [[-2.4, -0.6], [2.4, -0.6], [-2.4, 2.2], [2.4, 2.2]];
+        bistroSpots.forEach(([tx, tz]) => {
+          // Quartz Round Table Top
+          createCylinder(1.0, 1.0, 0.08, tx, 0.75, tz, 0xf8fafc, { roughness: 0.2, metalness: 0.3 });
+          createCylinder(0.08, 0.08, 0.75, tx, 0.38, tz, 0x475569, { metalness: 0.8 }); // Chrome pedestal
+          createCylinder(0.4, 0.4, 0.04, tx, 0.02, tz, 0x475569, { metalness: 0.8 });
+
+          // Vibrant Orange Bistro Dining Chairs
+          const chairAngles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+          chairAngles.forEach(ang => {
+            const cx = tx + Math.cos(ang) * 1.3;
+            const cz = tz + Math.sin(ang) * 1.3;
+            createBox(0.4, 0.06, 0.4, cx, 0.44, cz, 0xf97316, { roughness: 0.5 });
+            createBox(0.4, 0.35, 0.05, cx, 0.65, cz, 0xea580c, { roughness: 0.5 });
+            createBox(0.05, 0.44, 0.05, cx, 0.22, cz, 0x334155, { metalness: 0.8 });
+          });
+        });
+      }
+
+      document.getElementById("rigLabel").innerText = rigSubtitles[zoneKey] || "SPATIAL ARCHITECTURAL RIG";
+      update3DVisualState(zoneKey);
     }
 
     function animate() {
       requestAnimationFrame(animate);
 
-      // Smooth auto-panning when user is not dragging
-      if (!isUserInteracting) {
-        lon += 0.05;
+      if (!isDragging) {
+        roomGroup.rotation.y += 0.0012;
       }
 
-      lat = Math.max(-85, Math.min(85, lat));
-      phi = THREE.MathUtils.degToRad(90 - lat);
-      theta = THREE.MathUtils.degToRad(lon);
+      // Dynamic radar wave expansion
+      if (fovConeMesh) {
+        const t = Date.now() * 0.003;
+        const s = 1 + Math.sin(t) * 0.025;
+        fovConeMesh.scale.set(s, s, s);
+      }
+      if (fovGroundRing) {
+        const t = Date.now() * 0.004;
+        const ringScale = 1 + (Math.sin(t) * 0.06);
+        fovGroundRing.scale.set(ringScale, ringScale, 1);
+      }
 
-      const target = new THREE.Vector3();
-      target.x = 500 * Math.sin(phi) * Math.cos(theta);
-      target.y = 500 * Math.cos(phi);
-      target.z = 500 * Math.sin(phi) * Math.sin(theta);
-
-      threeCamera.lookAt(target);
-      threeRenderer.render(threeScene, threeCamera);
+      renderer.render(scene, camera);
     }
 
-    /* ---------------- LIVE COLOR DETECTION (RED vs GREEN) ---------------- */
     function update3DVisualState(zoneKey) {
-      if (sphereMesh) {
-        sphereMesh.material.map = generatePhotorealisticTexture(zoneKey);
-        sphereMesh.material.needsUpdate = true;
-      }
-
       const zone = campusState[zoneKey] || {};
       const occupants = zone.occupants || 0;
       const isWasting = (occupants === 0) && (zone.lights_on || zone.fans_on);
@@ -745,27 +899,31 @@
       const detectionBadge = document.getElementById("detectionBadge");
       const activeRadarBadge = document.getElementById("activeRadarBadge");
       const activeModelBadge = document.getElementById("activeModelBadge");
+      const radarDot = document.getElementById("radarDot");
+      const radarLabel = document.getElementById("radarLabel");
 
-      const hudCard = document.getElementById("sensorHudCard");
-      const hudRadarDot = document.getElementById("hudRadarDot");
-      const hudZoneName = document.getElementById("hudZoneName");
-      const hudPersonCount = document.getElementById("hudPersonCount");
-      const hudPower = document.getElementById("hudPower");
-
-      const zoneTitles = {
-        "block-a": "Lecture Hall (Auditorium)",
-        "library": "Library_01 (Reading Stacks)",
-        "hostel-1": "Three Sharing Room",
-        "cafeteria": "Canteen & Dining Hall"
+      const zoneNames = {
+        "block-a": "Auditorium",
+        "library": "Central Library",
+        "hostel-1": "Hostel Block 1",
+        "cafeteria": "Cafeteria Complex"
       };
 
-      if (activeModelBadge) activeModelBadge.innerText = zoneTitles[zoneKey] || "Smart Room";
-      if (hudZoneName) hudZoneName.innerText = zoneTitles[zoneKey] || zone.name;
-      if (hudPersonCount) hudPersonCount.innerText = `${occupants} Persons`;
-      if (hudPower) hudPower.innerText = zone.power_draw || "4.2 kW";
+      if (activeModelBadge) activeModelBadge.innerText = zoneNames[zoneKey] || zone.name;
 
       if (isWasting) {
-        // Red Leakage Alert
+        // Red Volumetric Camera Cone & Spot
+        if (fovConeMesh) {
+          fovConeMesh.material.color.setHex(0xf43f5e);
+          fovConeMesh.material.opacity = 0.38;
+        }
+        if (fovGroundRing) {
+          fovGroundRing.material.color.setHex(0xf43f5e);
+          fovGroundRing.material.opacity = 0.55;
+        }
+        if (fovSpotLight) fovSpotLight.color.setHex(0xf43f5e);
+        if (cameraMountMesh) cameraMountMesh.material.color.setHex(0xf43f5e);
+
         statusDot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping";
         modeTag.className = "text-[10px] font-bold px-2.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-600 font-mono-code";
         modeTag.innerText = "DETECTION: RED (ENERGY LEAKAGE)";
@@ -778,11 +936,24 @@
           activeRadarBadge.innerText = "RED WARNING";
         }
 
-        if (hudCard) hudCard.style.borderColor = "rgba(244, 63, 94, 0.8)";
-        if (hudRadarDot) hudRadarDot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping";
-        if (hudPersonCount) hudPersonCount.className = "text-rose-400 font-bold";
+        if (radarDot) radarDot.className = "w-2 h-2 rounded-full bg-rose-500 animate-ping";
+        if (radarLabel) {
+          radarLabel.className = "text-rose-400 font-bold";
+          radarLabel.innerText = "RADAR FOV: UNATTENDED DRAW (RED)";
+        }
       } else {
-        // Green Compliant
+        // Green Volumetric Camera Cone & Spot
+        if (fovConeMesh) {
+          fovConeMesh.material.color.setHex(0x10b981);
+          fovConeMesh.material.opacity = 0.35;
+        }
+        if (fovGroundRing) {
+          fovGroundRing.material.color.setHex(0x10b981);
+          fovGroundRing.material.opacity = 0.5;
+        }
+        if (fovSpotLight) fovSpotLight.color.setHex(0x10b981);
+        if (cameraMountMesh) cameraMountMesh.material.color.setHex(0x10b981);
+
         statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping";
         modeTag.className = "text-[10px] font-bold px-2.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-600 font-mono-code";
         modeTag.innerText = occupants > 0 ? `DETECTION: GREEN (${occupants} PERSONS)` : "DETECTION: GREEN (SAFE OFF)";
@@ -792,18 +963,19 @@
 
         if (activeRadarBadge) {
           activeRadarBadge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-700";
-          activeRadarBadge.innerText = "GREEN";
+          activeRadarBadge.innerText = "GREEN COMPLIANT";
         }
 
-        if (hudCard) hudCard.style.borderColor = "rgba(56, 189, 248, 0.4)";
-        if (hudRadarDot) hudRadarDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping";
-        if (hudPersonCount) hudPersonCount.className = "text-emerald-400 font-bold";
+        if (radarDot) radarDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-ping";
+        if (radarLabel) {
+          radarLabel.className = "text-emerald-400 font-bold";
+          radarLabel.innerText = `RADAR FOV: SECURE (${occupants} PRESENT)`;
+        }
       }
 
-      document.getElementById("threeDHeading").innerText = `3D Real Digital Twin: ${zone.name || zoneKey}`;
+      document.getElementById("threeDHeading").innerText = `3D Spatial Twin: ${zone.name || zoneKey}`;
     }
 
-    /* ---------------- TELEMETRY CHARTS ---------------- */
     function initCharts() {
       const barCtx = document.getElementById('barTrendChart').getContext('2d');
       new Chart(barCtx, {
@@ -848,14 +1020,12 @@
 
     async function loadCampus() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/campus");
+        const res = await fetch(`${API_BASE}/api/campus`);
         if (res.ok) {
           const remoteState = await res.json();
           campusState = { ...campusState, ...remoteState };
         }
-      } catch (err) {
-        console.warn("Backend poll standby, using local cache:", err);
-      }
+      } catch (err) {}
 
       ["block-a", "library", "hostel-1", "cafeteria"].forEach(key => {
         const z = campusState[key];
@@ -894,11 +1064,9 @@
       ["block-a", "library", "hostel-1", "cafeteria"].forEach(key => {
         const card = document.getElementById(`card-${key}`);
         if (card) {
-          if (key === zoneKey) {
-            card.className = "card-cyber p-4 cursor-pointer transition active-zone-cyber";
-          } else {
-            card.className = "card-cyber p-4 cursor-pointer transition hover:border-cyan-400/40";
-          }
+          card.className = (key === zoneKey)
+            ? "card-cyber p-4 cursor-pointer transition active-zone-cyber"
+            : "card-cyber p-4 cursor-pointer transition hover:border-cyan-400/40";
         }
       });
 
@@ -906,10 +1074,10 @@
       document.getElementById("activeNodeLabel").innerText = `Active: ${zone.name || zoneKey}`;
       document.getElementById("streamTitle").innerText = `Live Node Stream: ${zone.name || zoneKey}`;
       document.getElementById("activeStreamSuffix").innerText = zoneKey;
-      document.getElementById("liveVideoFeed").src = `http://127.0.0.1:8000/stream/${zoneKey}?t=` + Date.now();
+      document.getElementById("liveVideoFeed").src = `${API_BASE}/stream/${zoneKey}?t=` + Date.now();
 
+      buildArchitecturalRoom(zoneKey);
       updateDiagnosticPanel();
-      update3DVisualState(zoneKey);
     }
 
     function updateDiagnosticPanel() {
@@ -923,16 +1091,12 @@
 
       const isWasting = zone.occupants === 0 && (zone.lights_on || zone.fans_on);
       const banner = document.getElementById("anomalyBanner");
-      if (isWasting) {
-        banner.style.display = "block";
-      } else {
-        banner.style.display = "none";
-      }
+      if (banner) banner.style.display = isWasting ? "block" : "none";
     }
 
     async function loadLogs() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/logs");
+        const res = await fetch(`${API_BASE}/api/logs`);
         if (!res.ok) return;
         const logs = await res.json();
         const tbody = document.getElementById("auditLogsBody");
@@ -961,9 +1125,7 @@
           `;
           tbody.appendChild(tr);
         });
-      } catch (err) {
-        console.warn("Logs poll standby:", err);
-      }
+      } catch (err) {}
     }
 
     function openFacultyModal() {
@@ -994,14 +1156,12 @@
       btn.innerText = "Saving...";
 
       try {
-        await fetch(`http://127.0.0.1:8000/api/update_incharge/${zoneKey}`, {
+        await fetch(`${API_BASE}/api/update_incharge/${zoneKey}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ name, phone })
         });
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) {}
 
       if (campusState[zoneKey]) {
         campusState[zoneKey].incharge_name = name;
@@ -1037,21 +1197,19 @@
       }
 
       try {
-        await fetch(`http://127.0.0.1:8000/api/set_zone/${currentSelectedZone}`, {
+        await fetch(`${API_BASE}/api/set_zone/${currentSelectedZone}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ occupants: occ, lights_on: lights, fans_on: fans })
         });
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) {}
 
       closeOverrideModal();
       loadCampus();
     }
 
     async function triggerManualAlert() {
-      await fetch(`http://127.0.0.1:8000/api/push_alert/${currentSelectedZone}`, { method: "POST" });
+      await fetch(`${API_BASE}/api/push_alert/${currentSelectedZone}`, { method: "POST" });
       loadLogs();
     }
 
@@ -1060,7 +1218,7 @@
       btn.innerText = "⚡ Tripping Relay...";
       
       try {
-        await fetch(`http://127.0.0.1:8000/api/isolate_circuit/${currentSelectedZone}`, { method: "POST" });
+        await fetch(`${API_BASE}/api/isolate_circuit/${currentSelectedZone}`, { method: "POST" });
         if (campusState[currentSelectedZone]) {
           campusState[currentSelectedZone].lights_on = false;
           campusState[currentSelectedZone].fans_on = false;
@@ -1068,15 +1226,13 @@
         }
         await loadCampus();
         await loadLogs();
-      } catch (err) {
-        console.error(err);
-      }
+      } catch (err) {}
 
       btn.innerHTML = "<span>⚡</span><span>Engage Circuit Relay Cutoff</span>";
     }
 
     async function resetDemo() {
-      await fetch("http://127.0.0.1:8000/api/reset", { method: "POST" });
+      await fetch(`${API_BASE}/api/reset`, { method: "POST" });
       loadCampus();
       loadLogs();
     }
