@@ -1,17 +1,25 @@
-import base64
-import datetime
-import urllib.parse
-import cv2
+import os
+import io
+import asyncio
+import sqlite3
+import json
+import requests
 import numpy as np
-from fastapi import FastAPI, Body
+import cv2
+from datetime import datetime
+from typing import Optional, Dict, Any
+from concurrent.futures import ThreadPoolExecutor
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, HTMLResponse
+from pydantic import BaseModel
+from PIL import Image, ImageDraw
+from ultralytics import YOLO
 
-from app.db.database import init_db, get_connection
-from app.services.vision_engine import VisionEngine
-from app.services.grid_controller import GridController
+# Google GenAI Official SDK
+from google import genai
 
-app = FastAPI(title="EcoPulse AI Core Engine")
+app = FastAPI(title="EcoPulse AI - ESG Campus Grid with GenAI")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,378 +29,549 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-init_db()
-vision_service = VisionEngine()
-grid_service = GridController()
+executor = ThreadPoolExecutor(max_workers=4)
 
-# Dictionary to hold the latest processed JPEG frame per zone
-remote_frames = {
-    "block-a": None,
-    "library": None,
-    "hostel-1": None,
-    "cafeteria": None
-}
+# ---------------------------------------------------------
+# GENERATIVE AI CONFIGURATION (GEMINI 2.5 FLASH)
+# ---------------------------------------------------------
+GEMINI_API_KEY = "AIzaSyBAXu8b4xC7-imgnaIEwwEoa1haNxiFGbY"
 
-# Persistent in-memory incharge directory
-incharges = {
-    "block-a": {"name": "Prof. Sharma", "role": "Academic Dean", "phone": "919844012345"},
-    "library": {"name": "Dr. Ramesh", "role": "Chief Librarian", "phone": "919844012346"},
-    "hostel-1": {"name": "Mr. Venkatesh", "role": "Senior Warden", "phone": "919844012347"},
-    "cafeteria": {"name": "Mr. Anand", "role": "Operations Manager", "phone": "919844012348"}
-}
+try:
+    genai_client = genai.Client(api_key=GEMINI_API_KEY)
+    print("\n✓ Google Generative AI (Gemini) successfully initialized.\n")
+except Exception as e:
+    print(f"❌ GenAI Initialization Warning: {e}")
+    genai_client = None
 
-def init_incharge_db():
+# ---------------------------------------------------------
+# AUTONOMOUS WHATSAPP CONFIGURATION (GREEN-API INSTANCE)
+# ---------------------------------------------------------
+GREEN_API_HOST = "https://7107.api.greenapi.com"
+GREEN_API_ID_INSTANCE = "710722769366"
+GREEN_API_TOKEN = "733d94b68a4c4d24a7de553ac7219ffe565f6a595b9b4b6d9d"
+
+# Strict WhatsApp Notification Limit: Max 2 messages per room incident with 60s cooldown
+MAX_ALERT_COUNT = 2
+ALERT_COOLDOWN_SECONDS = 60
+
+# ---------------------------------------------------------
+# LOAD YOLOV8 MODEL
+# ---------------------------------------------------------
+possible_paths = [
+    os.path.join(os.path.dirname(__file__), "..", "yolov8n.pt"),
+    os.path.join(os.path.dirname(__file__), "yolov8n.pt"),
+    "yolov8n.pt"
+]
+model_path = next((p for p in possible_paths if os.path.exists(p)), "yolov8n.pt")
+
+try:
+    print(f"[SYSTEM] Loading YOLOv8: {os.path.abspath(model_path)}")
+    model = YOLO(model_path)
+    print("✓ YOLOv8 Engine successfully initialized.\n")
+except Exception as e:
+    print(f"❌ YOLO load error: {e}")
+    model = None
+
+# ---------------------------------------------------------
+# SQLITE AUDIT DATABASE SETUP
+# ---------------------------------------------------------
+DB_PATH = os.path.join(os.path.dirname(__file__), "database.db")
+
+def get_connection():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_db():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS campus_incharges (
-            zone_id TEXT PRIMARY KEY,
-            name TEXT,
-            role TEXT,
-            phone TEXT
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT,
+            source TEXT,
+            item_or_event TEXT,
+            status_or_category TEXT,
+            impact TEXT,
+            ai_summary TEXT
         )
     """)
-    for zid, data in incharges.items():
-        cur.execute(
-            "INSERT OR REPLACE INTO campus_incharges (zone_id, name, role, phone) VALUES (?, ?, ?, ?)",
-            (zid, data["name"], data["role"], data["phone"])
-        )
     conn.commit()
     conn.close()
 
-init_incharge_db()
+init_db()
 
-@app.get("/view")
-@app.get("/view/{zone_id}")
-def mobile_camera_broadcaster(zone_id: str = "block-a"):
-    """Ultra-low latency mobile transmitter using non-blocking async capture."""
-    html_content = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>EcoPulse Node Camera Transmitter</title>
-    <style>
-        * {{ box-sizing: border-box; }}
-        body {{
-            margin: 0;
-            background-color: #020617;
-            color: #f8fafc;
-            font-family: system-ui, -apple-system, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            min-height: 100vh;
-            padding: 16px;
-        }}
-        .card {{
-            background: #0f172a;
-            border: 1px solid #1e293b;
-            border-radius: 16px;
-            overflow: hidden;
-            width: 100%;
-            max-width: 480px;
-            display: flex;
-            flex-direction: column;
-        }}
-        .header {{
-            padding: 14px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #1e293b;
-        }}
-        h2 {{
-            margin: 0;
-            font-size: 0.95rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #38bdf8;
-        }}
-        .badge {{
-            font-size: 0.75rem;
-            font-family: monospace;
-            background: rgba(16, 185, 129, 0.2);
-            color: #34d399;
-            padding: 3px 8px;
-            border-radius: 9999px;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }}
-        #video-preview {{
-            width: 100%;
-            aspect-ratio: 4/3;
-            object-fit: cover;
-            background: #000;
-        }}
-        .controls {{
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }}
-        .btn {{
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: 0.2s;
-            text-transform: uppercase;
-        }}
-        .btn-start {{
-            background: #10b981;
-            color: #fff;
-        }}
-        .btn-start:active {{
-            background: #059669;
-        }}
-        .status {{
-            font-size: 0.8rem;
-            color: #94a3b8;
-            font-family: monospace;
-            text-align: center;
-        }}
-    </style>
-</head>
-<body>
-    <div class="card">
-        <div class="header">
-            <h2>Node: {zone_id.upper()}</h2>
-            <span id="stream-badge" class="badge">STANDBY</span>
-        </div>
-        <video id="video-preview" autoplay playsinline muted></video>
-        <canvas id="hidden-canvas" style="display: none;"></canvas>
-        <div class="controls">
-            <button id="start-btn" class="btn btn-start" onclick="toggleStream()">📷 Start Phone Camera Stream</button>
-            <div id="status-text" class="status">Tap button above to allow camera permissions</div>
-        </div>
-    </div>
+# ---------------------------------------------------------
+# CAMPUS ZONES STATE (EDITABLE VIA ASSIGN FACULTY MODAL)
+# ---------------------------------------------------------
+active_zones: Dict[str, Dict[str, Any]] = {
+    "block-a": {
+        "id": "block-a",
+        "name": "Academic Block A",
+        "occupants": 0,
+        "lights_on": True,
+        "fans_on": True,
+        "power_draw": "4.2 kW",
+        "incharge_phone": "916361114713",
+        "incharge_name": "Prof. Puneeth Kumar"
+    },
+    "library": {
+        "id": "library",
+        "name": "Central Library",
+        "occupants": 0,
+        "lights_on": True,
+        "fans_on": True,
+        "power_draw": "2.4 kW",
+        "incharge_phone": "916361114713",
+        "incharge_name": "Dr. Rao (Chief Librarian)"
+    },
+    "hostel-1": {
+        "id": "hostel-1",
+        "name": "Hostel Block 1",
+        "occupants": 0,
+        "lights_on": True,
+        "fans_on": True,
+        "power_draw": "1.8 kW",
+        "incharge_phone": "916361114713",
+        "incharge_name": "Warden Office"
+    },
+    "cafeteria": {
+        "id": "cafeteria",
+        "name": "Cafeteria Complex",
+        "occupants": 0,
+        "lights_on": True,
+        "fans_on": True,
+        "power_draw": "3.1 kW",
+        "incharge_phone": "916361114713",
+        "incharge_name": "Estate Manager"
+    }
+}
 
-    <script>
-        const zoneId = "{zone_id}";
-        const video = document.getElementById('video-preview');
-        const canvas = document.getElementById('hidden-canvas');
-        const badge = document.getElementById('stream-badge');
-        const statusText = document.getElementById('status-text');
-        const startBtn = document.getElementById('start-btn');
-        let streaming = false;
-        let isSending = false;
+violation_tracker: Dict[str, Dict[str, Any]] = {
+    "block-a": {"active": False, "since": None, "sent_count": 0, "last_sent_at": None},
+    "library": {"active": False, "since": None, "sent_count": 0, "last_sent_at": None},
+    "hostel-1": {"active": False, "since": None, "sent_count": 0, "last_sent_at": None},
+    "cafeteria": {"active": False, "since": None, "sent_count": 0, "last_sent_at": None}
+}
 
-        async function toggleStream() {{
-            if (!streaming) {{
-                try {{
-                    const stream = await navigator.mediaDevices.getUserMedia({{
-                        video: {{ 
-                            facingMode: "environment", 
-                            width: {{ ideal: 480 }}, 
-                            height: {{ ideal: 360 }} 
-                        }},
-                        audio: false
-                    }});
-                    video.srcObject = stream;
-                    streaming = true;
-                    badge.innerText = "● TRANSMITTING";
-                    badge.style.background = "rgba(239, 68, 68, 0.2)";
-                    badge.style.color = "#f87171";
-                    badge.style.borderColor = "rgba(239, 68, 68, 0.3)";
-                    startBtn.innerText = "⏹ Stop Streaming";
-                    startBtn.style.background = "#e11d48";
-                    statusText.innerText = "Transmitting live at low latency...";
+last_logged_state: Dict[str, str] = {
+    "block-a": "NORMAL",
+    "library": "NORMAL",
+    "hostel-1": "NORMAL",
+    "cafeteria": "NORMAL"
+}
 
-                    startPushLoop();
-                }} catch (err) {{
-                    alert("Camera access denied or unavailable: " + err.message);
-                }}
-            }} else {{
-                streaming = false;
-                if (video.srcObject) {{
-                    video.srcObject.getTracks().forEach(track => track.stop());
-                }}
-                badge.innerText = "STANDBY";
-                badge.style.background = "rgba(16, 185, 129, 0.2)";
-                badge.style.color = "#34d399";
-                badge.style.borderColor = "rgba(16, 185, 129, 0.3)";
-                startBtn.innerText = "📷 Start Phone Camera Stream";
-                startBtn.style.background = "#10b981";
-                statusText.innerText = "Stream paused.";
-            }}
-        }}
+latest_frames: Dict[str, bytes] = {}
 
-        // Low-latency recursive loop: never piles up old frames in the queue
-        async function startPushLoop() {{
-            canvas.width = 400;
-            canvas.height = 300;
-            const ctx = canvas.getContext('2d');
-
-            while (streaming) {{
-                if (video.readyState >= 2 && !isSending) {{
-                    isSending = true;
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    
-                    // Optimized 0.45 JPEG compression prevents network bottlenecks
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.45);
-
-                    try {{
-                        await fetch('/api/camera/ingest/' + zoneId, {{
-                            method: 'POST',
-                            headers: {{ 'Content-Type': 'application/json' }},
-                            body: JSON.stringify({{ image: dataUrl }})
-                        }});
-                    }} catch (e) {{}}
-                    
-                    isSending = false;
-                }}
-                // Small sleep to yield execution and keep 12-15 FPS fluid
-                await new Promise(r => setTimeout(r, 65));
-            }}
-        }}
-    </script>
-</body>
-</html>"""
-    return HTMLResponse(content=html_content, status_code=200)
-
-@app.post("/api/camera/ingest/{zone_id}")
-async def ingest_phone_frame(zone_id: str, payload: dict = Body(...)):
-    """Receives remote JPEG frame, performs low-overhead YOLO inference, and buffers result."""
-    try:
-        data_str = payload.get("image", "")
-        if "," in data_str:
-            data_str = data_str.split(",")[1]
-        img_bytes = base64.b64decode(data_str)
-        nparr = np.frombuffer(img_bytes, np.uint8)
-        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-
-        if frame is not None:
-            # Fast inference with lower image size preset
-            results = vision_service.model(frame, imgsz=320, verbose=False)
-            annotated_frame = results[0].plot()
-
-            # Encode at standard compression for high-speed streaming
-            _, buffer = cv2.imencode('.jpg', annotated_frame, [cv2.IMWRITE_JPEG_QUALITY, 55])
-            remote_frames[zone_id] = buffer.tobytes()
-            return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
-    return {"status": "failed"}
-
-def stream_generator(zone_id: str):
-    """Streams phone frame if active; falls back to laptop webcam if no phone feed."""
-    while True:
-        frame_bytes = remote_frames.get(zone_id)
-        if frame_bytes is not None:
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-        else:
-            yield next(vision_service.stream_feed(zone_id))
-
-@app.get("/video_feed")
-@app.get("/video_feed/{zone_id}")
-def video_feed(zone_id: str = "block-a"):
-    return StreamingResponse(
-        stream_generator(zone_id),
-        media_type="multipart/x-mixed-replace; boundary=frame"
+# ---------------------------------------------------------
+# GENERATIVE AI DYNAMIC REASONING ENGINE
+# ---------------------------------------------------------
+def generate_genai_incident_report(zone_name: str, incharge_name: str, devices: str, power_kw: str) -> str:
+    """Uses Gemini 2.5 Flash to synthesize a dynamic, natural-language ESG alert."""
+    prompt = (
+        f"You are the DSU EcoPulse Generative AI Campus Sustainability Officer. "
+        f"Generate a professional, urgent WhatsApp alert under 50 words with emojis. "
+        f"Details:\n"
+        f"- Facility Zone: {zone_name}\n"
+        f"- Designated Incharge: {incharge_name}\n"
+        f"- Vision Evidence: YOLOv8 confirmed 0 occupants in the room.\n"
+        f"- Electrical Load: {devices} drawing {power_kw} peak power.\n"
+        f"- Action: Urge cutoff or report that automated relay isolation has been tripped."
     )
+
+    if genai_client:
+        try:
+            response = genai_client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt
+            )
+            return response.text.strip()
+        except Exception as err:
+            print(f"[GenAI API Fallback]: {err}")
+
+    # Deterministic fallback if network drops
+    return (
+        f"🚨 *EcoPulse AI Incident Alert*\n"
+        f"To: *{incharge_name}* ({zone_name})\n\n"
+        f"YOLOv8 confirmed 0 occupants while {devices} are drawing {power_kw}. "
+        f"Automated relay isolation sequence initiated to prevent carbon penalty."
+    )
+
+def create_standby_frame(zone_name: str) -> bytes:
+    img = Image.new("RGB", (480, 360), color=(10, 17, 40))
+    draw = ImageDraw.Draw(img)
+    draw.text((30, 140), f"Camera Node: {zone_name}", fill=(56, 189, 248))
+    draw.text((30, 170), "STANDBY - AWAITING MOBILE SENSOR FEED", fill=(244, 63, 94))
+    draw.text((30, 200), "Open mobile link to broadcast stream", fill=(148, 163, 184))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    return buf.getvalue()
+
+async def send_whatsapp_alert(zone_id: str, message: str):
+    zone = active_zones.get(zone_id, {})
+    raw_phone = str(zone.get("incharge_phone", "")).strip()
+    phone = raw_phone.replace("+", "").replace(" ", "").replace("-", "")
+    if len(phone) == 10 and not phone.startswith("91"):
+        phone = f"91{phone}"
+
+    name = zone.get("incharge_name", "Incharge Faculty")
+
+    print("\n" + "="*58)
+    print(f"🚨 [AUTONOMOUS WHATSAPP DISPATCH]")
+    print(f"Target Zone      : {zone.get('name')}")
+    print(f"Assigned Incharge: {name} (+{phone})")
+    print(f"GenAI Message    :\n{message}")
+    print("="*58 + "\n")
+
+    if not phone:
+        print("❌ Dispatch skipped: No phone number assigned.\n")
+        return
+
+    def dispatch_whatsapp():
+        try:
+            url = f"{GREEN_API_HOST}/waInstance{GREEN_API_ID_INSTANCE}/sendMessage/{GREEN_API_TOKEN}"
+            payload = {"chatId": f"{phone}@c.us", "message": message}
+            headers = {'Content-Type': 'application/json'}
+            resp = requests.post(url, json=payload, headers=headers, timeout=10)
+            if resp.status_code == 200:
+                print(f"✓ Automatic WhatsApp delivered to +{phone}!\n")
+            else:
+                print(f"❌ Green-API Error: {resp.status_code} - {resp.text}\n")
+        except Exception as err:
+            print(f"❌ WhatsApp Network Error: {err}\n")
+
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, dispatch_whatsapp)
+
+# ---------------------------------------------------------
+# HTTP API ROUTES
+# ---------------------------------------------------------
+@app.get("/")
+def root():
+    return {
+        "status": "online",
+        "system": "EcoPulse ESG Campus Grid",
+        "genai_active": genai_client is not None,
+        "version": "7.0.0"
+    }
 
 @app.get("/api/campus")
-def get_campus():
-    return list(grid_service.nodes.values())
-
-@app.get("/api/incharges")
-def get_incharges():
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT zone_id, name, role, phone FROM campus_incharges")
-    rows = cur.fetchall()
-    conn.close()
-    return {r[0]: {"name": r[1], "role": r[2], "phone": r[3]} for r in rows}
-
-@app.post("/api/incharges/{zone_id}")
-def update_incharge(zone_id: str, name: str, role: str, phone: str):
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT OR REPLACE INTO campus_incharges (zone_id, name, role, phone) VALUES (?, ?, ?, ?)",
-        (zone_id, name, role, phone)
-    )
-    conn.commit()
-    conn.close()
-    incharges[zone_id] = {"name": name, "role": role, "phone": phone}
-    return {"success": True, "data": incharges[zone_id]}
-
-@app.post("/api/relay/trigger/{node_id}")
-def trigger_relay(node_id: str):
-    success = grid_service.execute_cutoff(node_id)
-    return {"success": success}
-
-@app.post("/api/notify/whatsapp/{zone_id}")
-def dispatch_whatsapp(zone_id: str):
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT name, phone FROM campus_incharges WHERE zone_id = ?", (zone_id,))
-    row = cur.fetchone()
-    name = row[0] if row else "Incharge"
-    phone = row[1] if row else "919844012345"
-
-    message = f"🚨 *ECOPULSE AI CRITICAL ALERT*\n\nAttention {name},\nZero occupancy detected in {zone_id.upper()} with HVAC/Power operating at 42 kW off-schedule (+128 kg CO2 penalty).\n\nPlease cut off idle switches or approve autonomous relay cutoff on your dashboard."
-    
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cur.execute(
-        "INSERT INTO audit_logs (timestamp, source, item_or_event, status_or_category, impact) VALUES (?, ?, ?, ?, ?)",
-        (now, f"WhatsApp Gateway [{zone_id.upper()}]", f"Alert to {name} ({phone})", "DISPATCHED", "Pending Isolation")
-    )
-    conn.commit()
-    conn.close()
-
-    encoded_msg = urllib.parse.quote(message)
-    whatsapp_url = f"https://wa.me/{phone}?text={encoded_msg}"
-    return {"success": True, "whatsapp_url": whatsapp_url, "phone": phone, "name": name}
-
-@app.post("/api/reset")
-def reset_grid():
-    grid_service.reset_state()
-    return {"success": True, "message": "Grid state restored to baseline anomaly."}
-
-@app.post("/api/waste/simulate-audit")
-def simulate_waste(audit_type: str):
-    conn = get_connection()
-    cur = conn.cursor()
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    if audit_type == "contaminated":
-        cur.execute(
-            "INSERT INTO audit_logs (timestamp, source, item_or_event, status_or_category, impact) VALUES (?, ?, ?, ?, ?)",
-            (now, "Preset Vision Audit", "Cafeteria Organic Bin", "CONTAMINATED", "40% Compost Purity Penalty")
-        )
-        res = {
-            "title": "Contaminated Waste Detected",
-            "result": "Unsegregated plastic packaging identified in organic bin.",
-            "penalty": "40% Compost Purity Penalty Applied"
-        }
-    else:
-        cur.execute(
-            "INSERT INTO audit_logs (timestamp, source, item_or_event, status_or_category, impact) VALUES (?, ?, ?, ?, ?)",
-            (now, "Preset Vision Audit", "Hostel 1 Station", "COMPLIANT", "+50 Green Credits")
-        )
-        res = {
-            "title": "Clean Segregation Confirmed",
-            "result": "Compostable organic matter verified without foreign contaminants.",
-            "penalty": "+50 Green Credits Issued"
-        }
-
-    conn.commit()
-    conn.close()
-    return res
+def get_campus_state():
+    return active_zones
 
 @app.get("/api/logs")
 def get_logs():
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute(
-        "SELECT timestamp, source, item_or_event, status_or_category, impact FROM audit_logs ORDER BY id DESC LIMIT 8"
-    )
+    cur.execute("SELECT timestamp, source, item_or_event, status_or_category, impact, ai_summary FROM audit_logs ORDER BY id DESC LIMIT 8")
     rows = cur.fetchall()
     conn.close()
-    return [{"timestamp": r[0], "source": r[1], "event": r[2], "status": r[3], "impact": r[4]} for r in rows]
+    return [{"timestamp": r[0], "source": r[1], "event": r[2], "status": r[3], "impact": r[4], "ai_summary": r[5]} for r in rows]
+
+class CopilotQuery(BaseModel):
+    query: str
+
+@app.post("/api/genai_copilot")
+async def copilot_chat(payload: CopilotQuery):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT timestamp, source, item_or_event, status_or_category, impact FROM audit_logs ORDER BY id DESC LIMIT 5")
+    rows = cur.fetchall()
+    conn.close()
+
+    logs_context = "\n".join([f"- [{r[0]}] {r[1]}: {r[2]} ({r[3]}, Impact: {r[4]})" for r in rows]) or "No recent incidents."
+
+    prompt = (
+        f"You are the DSU EcoPulse Generative AI Campus Assistant. Answer the question concisely using the live system state.\n"
+        f"Live Facility States:\n{json.dumps(active_zones, indent=2)}\n\n"
+        f"Recent Audit Logs:\n{logs_context}\n\n"
+        f"User Question: {payload.query}\n"
+        f"Answer in 2 sentences with specific data."
+    )
+
+    if genai_client:
+        try:
+            resp = genai_client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=prompt
+            )
+            return {"answer": resp.text.strip(), "source": "gemini-2.5-flash"}
+        except Exception as e:
+            print(f"[Copilot Error]: {e}")
+
+    return {
+        "answer": f"Monitoring 4 facility nodes. Academic Block A is drawing {active_zones['block-a']['power_draw']} with {active_zones['block-a']['occupants']} occupants.",
+        "source": "fallback-engine"
+    }
+
+class InchargeUpdate(BaseModel):
+    name: str
+    phone: str
+
+@app.post("/api/update_incharge/{zone_id}")
+async def update_incharge(zone_id: str, payload: InchargeUpdate):
+    if zone_id in active_zones:
+        clean_phone = payload.phone.replace("+", "").replace(" ", "").replace("-", "")
+        if len(clean_phone) == 10 and not clean_phone.startswith("91"):
+            clean_phone = f"91{clean_phone}"
+
+        active_zones[zone_id]["incharge_name"] = payload.name
+        active_zones[zone_id]["incharge_phone"] = clean_phone
+        return {"status": "ok", "data": active_zones[zone_id]}
+    return {"error": "Invalid zone"}
+
+class ZoneOverride(BaseModel):
+    occupants: int
+    lights_on: bool
+    fans_on: bool
+
+@app.post("/api/set_zone/{zone_id}")
+async def set_zone_data(zone_id: str, payload: ZoneOverride):
+    if zone_id in active_zones:
+        active_zones[zone_id]["occupants"] = payload.occupants
+        active_zones[zone_id]["lights_on"] = payload.lights_on
+        active_zones[zone_id]["fans_on"] = payload.fans_on
+        active_zones[zone_id]["power_draw"] = f"{(payload.lights_on * 1.5 + payload.fans_on * 1.2):.1f} kW"
+        return {"status": "updated", "zone": active_zones[zone_id]}
+    return {"error": "Invalid zone"}
+
+@app.post("/api/isolate_circuit/{zone_id}")
+async def isolate_circuit(zone_id: str):
+    if zone_id in active_zones:
+        active_zones[zone_id]["lights_on"] = False
+        active_zones[zone_id]["fans_on"] = False
+        active_zones[zone_id]["power_draw"] = "0.0 kW"
+
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO audit_logs (timestamp, source, item_or_event, status_or_category, impact, ai_summary) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                datetime.now().strftime("%H:%M:%S"),
+                active_zones[zone_id]["name"],
+                "Circuit Relay Isolation",
+                "Relay Cutoff Tripped",
+                "-4.2 kW Cut Off",
+                "Automated circuit relay cutoff engaged via Command Center."
+            )
+        )
+        conn.commit()
+        conn.close()
+        return {"status": "isolated", "zone": active_zones[zone_id]}
+    return {"error": "Invalid zone"}
+
+@app.post("/api/reset")
+def reset_demo():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM audit_logs")
+    conn.commit()
+    conn.close()
+    for tracker in violation_tracker.values():
+        tracker["active"] = False
+        tracker["since"] = None
+        tracker["sent_count"] = 0
+        tracker["last_sent_at"] = None
+    for k in last_logged_state.keys():
+        last_logged_state[k] = "NORMAL"
+    return {"status": "reset_successful"}
+
+@app.post("/api/push_alert/{zone_id}")
+async def trigger_manual_alert(zone_id: str):
+    if zone_id in active_zones:
+        zone = active_zones[zone_id]
+        loop = asyncio.get_event_loop()
+        genai_msg = await loop.run_in_executor(
+            None,
+            generate_genai_incident_report,
+            zone['name'],
+            zone['incharge_name'],
+            "Lighting & Ventilation",
+            zone['power_draw']
+        )
+        await send_whatsapp_alert(zone_id, genai_msg)
+        return {"status": "alert_dispatched", "zone": zone_id, "genai_text": genai_msg}
+    return {"error": "Invalid zone"}
+
+# ---------------------------------------------------------
+# THREADED YOLO MULTI-STREAM INFERENCE
+# ---------------------------------------------------------
+def process_frame_yolo(zone_id: str, frame_bytes: bytes, current_occupants: int):
+    np_arr = np.frombuffer(frame_bytes, np.uint8)
+    img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+    if img is None:
+        return frame_bytes, current_occupants
+
+    person_count = 0
+    if model:
+        results = model(img, classes=[0], conf=0.20, imgsz=320, verbose=False)
+        for r in results:
+            for box in r.boxes:
+                person_count += 1
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
+                conf = float(box.conf[0])
+                cv2.rectangle(img, (x1, y1), (x2, y2), (16, 185, 129), 2)
+                cv2.putText(
+                    img,
+                    f"Person {conf*100:.0f}%",
+                    (x1, max(20, y1 - 6)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (16, 185, 129),
+                    2
+                )
+
+    badge_bg = (16, 185, 129) if person_count > 0 else (239, 68, 68)
+    cv2.rectangle(img, (0, 0), (280, 36), (255, 255, 255), -1)
+    cv2.putText(
+        img,
+        f"{zone_id.upper()}: {person_count} PERSONS",
+        (10, 24),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.55,
+        badge_bg,
+        2
+    )
+
+    _, buffer = cv2.imencode('.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, 55])
+    return buffer.tobytes(), person_count
+
+@app.post("/api/upload_frame/{zone_id}")
+async def upload_frame(zone_id: str, request: Request):
+    frame_bytes = await request.body()
+    if not frame_bytes or zone_id not in active_zones:
+        return {"status": "empty"}
+
+    current_occ = active_zones[zone_id]["occupants"]
+    loop = asyncio.get_event_loop()
+    processed_bytes, person_count = await loop.run_in_executor(
+        executor, process_frame_yolo, zone_id, frame_bytes, current_occ
+    )
+
+    active_zones[zone_id]["occupants"] = person_count
+    latest_frames[zone_id] = processed_bytes
+    return {"status": "ok", "zone": zone_id, "persons": person_count}
+
+@app.get("/stream/{zone_id}")
+async def video_stream_endpoint(zone_id: str):
+    zone_name = active_zones.get(zone_id, {}).get("name", zone_id)
+    standby_frame = create_standby_frame(zone_name)
+
+    async def frame_generator():
+        while True:
+            frame = latest_frames.get(zone_id, standby_frame)
+            yield (b"--frame\r\n"
+                   b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n")
+            await asyncio.sleep(0.12)
+
+    return StreamingResponse(frame_generator(), media_type="multipart/x-mixed-replace; boundary=frame")
+
+# ---------------------------------------------------------
+# BACKGROUND MONITOR WITH AUTONOMOUS GENAI REPORTING
+# ---------------------------------------------------------
+async def auto_energy_waste_monitor():
+    await asyncio.sleep(2)
+    while True:
+        try:
+            now = datetime.now()
+            for zone_id, zone_data in active_zones.items():
+                occupants = zone_data.get("occupants", 0)
+                lights_active = zone_data.get("lights_on", False)
+                fans_active = zone_data.get("fans_on", False)
+
+                is_wasting = (occupants == 0) and (lights_active or fans_active)
+                tracker = violation_tracker[zone_id]
+
+                if is_wasting:
+                    if not tracker["active"]:
+                        tracker["active"] = True
+                        tracker["since"] = now
+                        tracker["sent_count"] = 0
+                        tracker["last_sent_at"] = None
+                    else:
+                        elapsed_since_start = (now - tracker["since"]).total_seconds()
+                        time_since_last_alert = 9999
+                        if tracker["last_sent_at"]:
+                            time_since_last_alert = (now - tracker["last_sent_at"]).total_seconds()
+
+                        # Enforce 2-message cap and 60s cooldown
+                        if elapsed_since_start >= 8 and tracker["sent_count"] < MAX_ALERT_COUNT and time_since_last_alert >= ALERT_COOLDOWN_SECONDS:
+                            loads = []
+                            if lights_active: loads.append("Lights")
+                            if fans_active: loads.append("Fans")
+                            device_str = " & ".join(loads)
+
+                            # >>> CALL GEMINI GENAI FOR DYNAMIC INCIDENT BRIEF <<<
+                            loop = asyncio.get_event_loop()
+                            genai_report = await loop.run_in_executor(
+                                None,
+                                generate_genai_incident_report,
+                                zone_data['name'],
+                                zone_data.get('incharge_name'),
+                                device_str,
+                                zone_data['power_draw']
+                            )
+
+                            await send_whatsapp_alert(zone_id, genai_report)
+                            tracker["sent_count"] += 1
+                            tracker["last_sent_at"] = now
+                            last_logged_state[zone_id] = "ALERT"
+
+                            conn = get_connection()
+                            cur = conn.cursor()
+                            cur.execute(
+                                "INSERT INTO audit_logs (timestamp, source, item_or_event, status_or_category, impact, ai_summary) "
+                                "VALUES (?, ?, ?, ?, ?, ?)",
+                                (
+                                    now.strftime("%H:%M:%S"),
+                                    zone_data["name"],
+                                    f"Idle {device_str} Leakage",
+                                    f"GenAI Alert ({tracker['sent_count']}/{MAX_ALERT_COUNT})",
+                                    "-1.6 kWh Saved",
+                                    genai_report
+                                )
+                            )
+                            conn.commit()
+                            conn.close()
+
+                elif occupants > 0:
+                    tracker["active"] = False
+                    tracker["since"] = None
+                    tracker["sent_count"] = 0
+                    tracker["last_sent_at"] = None
+
+                    if last_logged_state.get(zone_id) == "ALERT":
+                        last_logged_state[zone_id] = "NORMAL"
+
+                        conn = get_connection()
+                        cur = conn.cursor()
+                        cur.execute(
+                            "INSERT INTO audit_logs (timestamp, source, item_or_event, status_or_category, impact, ai_summary) "
+                            "VALUES (?, ?, ?, ?, ?, ?)",
+                            (
+                                now.strftime("%H:%M:%S"),
+                                zone_data["name"],
+                                f"Occupancy Verified ({occupants} Persons)",
+                                "Normal Operation",
+                                "Grid Compliant",
+                                "GenAI verified compliant human occupancy."
+                            )
+                        )
+                        conn.commit()
+                        conn.close()
+
+                else:
+                    tracker["active"] = False
+                    tracker["since"] = None
+                    tracker["sent_count"] = 0
+                    tracker["last_sent_at"] = None
+
+        except Exception as err:
+            print(f"[AutoMonitor Error]: {err}")
+
+        await asyncio.sleep(3)
+
+@app.on_event("startup")
+async def start_background_workers():
+    asyncio.create_task(auto_energy_waste_monitor())

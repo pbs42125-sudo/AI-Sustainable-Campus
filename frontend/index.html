@@ -2,441 +2,1309 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>EcoPulse AI - Remote Campus Grid & Emergency WhatsApp Dispatch</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoPulse.AI - DSU 3D Architectural Digital Twin</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <style>
-    @keyframes pulse-ring {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      50% { transform: scale(1.1); opacity: 0.2; }
-      100% { transform: scale(0.95); opacity: 0.8; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #05070f;
+      color: #f1f5f9;
+      overflow-x: hidden;
     }
-    .pulse-ring { animation: pulse-ring 2s infinite ease-in-out; }
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .card-cyber {
+      background: linear-gradient(135deg, rgba(17, 24, 39, 0.85) 0%, rgba(10, 15, 29, 0.95) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(56, 189, 248, 0.15);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+    }
+    .card-cyber:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+    .neon-text-gradient {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .active-zone-cyber {
+      border: 2px solid #38bdf8 !important;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%) !important;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.35) !important;
+    }
+    #threeDContainer canvas {
+      border-radius: 16px;
+      outline: none;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #070a13; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen p-5 font-sans antialiased">
+<body class="flex h-screen overflow-hidden">
 
-  <!-- Incharge Configuration Modal -->
-  <div id="incharge-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center hidden">
-    <div class="bg-slate-900 border border-slate-700 rounded-xl p-5 max-w-md w-full shadow-2xl">
-      <div class="flex justify-between items-center pb-3 border-b border-slate-800 mb-4">
-        <h3 class="font-bold text-white text-sm uppercase">Manage Zone Incharge Contacts</h3>
-        <button onclick="closeInchargeModal()" class="text-slate-400 hover:text-white cursor-pointer text-sm font-bold">✕</button>
-      </div>
-      <div class="space-y-3 text-xs font-sans">
+  <!-- ================= 1. LEFT CYBER SIDEBAR ================= -->
+  <aside class="w-64 bg-[#080c18] border-r border-slate-800/80 text-white flex flex-col justify-between p-5 select-none shrink-0 shadow-2xl">
+    <div>
+      <div class="flex items-center space-x-3 mb-8 cursor-pointer" onclick="scrollToSection('dashboard-top')">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 to-indigo-600 p-[1.5px] shadow-lg shadow-cyan-500/20">
+          <div class="w-full h-full bg-[#080c18] rounded-2xl flex items-center justify-center font-black text-cyan-400 text-lg">
+            ⚡
+          </div>
+        </div>
         <div>
-          <label class="block text-slate-400 mb-1">Select Campus Zone:</label>
-          <select id="modal-zone-id" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-mono">
+          <h1 class="font-black text-lg tracking-tight neon-text-gradient leading-none">DSU EcoPulse</h1>
+          <span class="text-[10px] text-cyan-300/70 font-mono-code font-bold uppercase tracking-wider">Multi-Room 3D Twin</span>
+        </div>
+      </div>
+
+      <nav class="space-y-1.5 text-xs font-semibold">
+        <button onclick="scrollToSection('dashboard-top')" class="w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-bold transition shadow-lg shadow-cyan-500/10">
+          <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          <span>Command Center</span>
+        </button>
+        <button onclick="scrollToSection('facility-section')" class="w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-slate-400 hover:bg-slate-800/50 hover:text-white transition">
+          <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+          <span>4 Campus Rooms</span>
+        </button>
+        <button onclick="scrollToSection('split-surveillance')" class="w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-slate-400 hover:bg-slate-800/50 hover:text-white transition">
+          <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5"/></svg>
+          <span>3D Architecture Model</span>
+        </button>
+        <button onclick="scrollToSection('ledger-section')" class="w-full flex items-center space-x-3 px-3.5 py-3 rounded-xl text-slate-400 hover:bg-slate-800/50 hover:text-white transition">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span>Persistent Audit Logs</span>
+        </button>
+      </nav>
+
+      <div class="mt-8 pt-6 border-t border-slate-800/80">
+        <span class="text-[10px] uppercase font-bold tracking-widest text-slate-400 block mb-3 font-mono-code">Architecture Mode</span>
+        <div class="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 text-[11px] space-y-2 shadow-inner">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Current Room:</span>
+            <span id="activeModelBadge" class="text-cyan-300 font-bold font-mono-code text-[10px]">Auditorium</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Detection State:</span>
+            <span id="activeRadarBadge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-700">GREEN</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/20 text-xs">
+      <div class="flex items-center space-x-2 text-cyan-300 font-bold mb-1">
+        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+        <span>Active WhatsApp Alerting</span>
+      </div>
+      <p class="text-[11px] text-slate-400 leading-relaxed">Notifications route directly to the designated faculty on record.</p>
+    </div>
+  </aside>
+
+  <!-- ================= 2. MAIN SCROLLING VIEWPORT ================= -->
+  <main class="flex-1 flex flex-col h-screen overflow-y-auto p-7">
+    
+    <header id="dashboard-top" class="flex justify-between items-center mb-6">
+      <div>
+        <div class="flex items-center space-x-3 mb-1">
+          <h2 class="text-2xl font-black text-white tracking-tight">Dayananda Sagar University • School of Engineering</h2>
+          <span class="text-[10px] px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 font-bold uppercase tracking-widest font-mono-code">Interior Bounded 3D</span>
+        </div>
+        <p class="text-xs text-slate-400 font-medium">Distinct realistic 3D architectural digital twin for every room with interior volumetric red/green field-of-view</p>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <button onclick="openFacultyModal()" class="px-4 py-2.5 text-xs font-bold rounded-xl bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-500/20 transition shadow-sm flex items-center space-x-2">
+          <span>⚖️</span>
+          <span>Assign / Edit Faculty</span>
+        </button>
+        <button onclick="resetDemo()" class="px-3.5 py-2.5 text-xs font-semibold rounded-xl bg-slate-900 text-slate-400 hover:text-white border border-slate-800 transition">
+          Reset State
+        </button>
+        <span class="text-xs font-mono-code font-bold text-cyan-400 bg-cyan-950/80 px-4 py-2.5 rounded-xl border border-cyan-500/40 shadow-lg shadow-cyan-500/10" id="clock">00:00:00</span>
+      </div>
+    </header>
+
+    <!-- Top KPI Telemetry Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="card-cyber p-5 border-l-4 border-l-cyan-400">
+        <div class="flex justify-between items-center text-xs text-slate-400 font-semibold mb-2">
+          <span>AI Occupants</span>
+          <span id="detectionBadge" class="text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-md text-[10px] font-mono-code font-bold border border-emerald-700">STATUS: SAFE</span>
+        </div>
+        <div class="flex items-baseline space-x-2">
+          <span id="metricOccupants" class="text-3xl font-black text-white font-mono-code">0</span>
+          <span class="text-xs text-slate-500 font-medium">Persons Present</span>
+        </div>
+      </div>
+
+      <div class="card-cyber p-5 border-l-4 border-l-indigo-500">
+        <div class="flex justify-between items-center text-xs text-slate-400 font-semibold mb-2">
+          <span>Active Power Draw</span>
+          <span class="text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-md text-[10px] font-mono-code font-bold">kW Meter</span>
+        </div>
+        <div class="flex items-baseline space-x-2">
+          <span id="metricPower" class="text-3xl font-black text-white font-mono-code">4.2 kW</span>
+          <span class="text-xs text-emerald-400 font-bold">Real-time Load</span>
+        </div>
+      </div>
+
+      <div class="card-cyber p-5 border-l-4 border-l-rose-500">
+        <div class="flex justify-between items-center text-xs text-slate-400 font-semibold mb-2">
+          <span>Carbon Leakage Penalty</span>
+          <span class="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md text-[10px] font-mono-code font-bold">Run-Rate</span>
+        </div>
+        <div class="flex items-baseline space-x-2">
+          <span class="text-3xl font-black text-rose-500 font-mono-code">+128</span>
+          <span class="text-xs text-slate-500 font-medium">kg CO₂/day</span>
+        </div>
+      </div>
+
+      <div class="card-cyber p-5 border-l-4 border-l-emerald-400">
+        <div class="flex justify-between items-center text-xs text-slate-400 font-semibold mb-2">
+          <span>Circuit Trip Latency</span>
+          <span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md text-[10px] font-mono-code font-bold">Automatic</span>
+        </div>
+        <div class="flex items-baseline space-x-2">
+          <span class="text-3xl font-black text-white font-mono-code">&lt; 35ms</span>
+          <span class="text-xs text-slate-500 font-medium">Direct Wire</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PERMANENT 4 FACILITY SELECTOR CARDS ================= -->
+    <div id="facility-section" class="mb-6">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono-code">Select Monitored Campus Facility</h3>
+        <span class="text-xs text-cyan-400 font-bold font-mono-code" id="activeNodeLabel">Active: Academic Block A</span>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- 1. Block A -->
+        <div id="card-block-a" onclick="selectZone('block-a')" class="card-cyber p-4 cursor-pointer transition active-zone-cyber">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h4 class="font-bold text-xs text-white">Academic Block A</h4>
+              <span class="text-[10px] text-cyan-400 font-mono-code">Smart Auditorium</span>
+            </div>
+            <span id="badge-block-a" class="text-[10px] px-2 py-0.5 rounded-md font-bold font-mono-code bg-emerald-950/80 text-emerald-300 border border-emerald-800">0 People</span>
+          </div>
+          <div class="text-[11px] text-slate-400 mb-2">Lead: <span id="lead-block-a" class="text-cyan-300 font-semibold">Prof. Puneeth</span></div>
+          <div class="flex justify-between items-center text-[11px] text-slate-400">
+            <span>Lights: <strong id="lights-block-a" class="text-amber-400">ON</strong></span>
+            <span>Fans: <strong id="fans-block-a" class="text-amber-400">ON</strong></span>
+          </div>
+        </div>
+
+        <!-- 2. Library -->
+        <div id="card-library" onclick="selectZone('library')" class="card-cyber p-4 cursor-pointer transition hover:border-cyan-400/40">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h4 class="font-bold text-xs text-white">Central Library</h4>
+              <span class="text-[10px] text-cyan-400 font-mono-code">Reading Stacks</span>
+            </div>
+            <span id="badge-library" class="text-[10px] px-2 py-0.5 rounded-md font-bold font-mono-code bg-emerald-950/80 text-emerald-300 border border-emerald-800">0 People</span>
+          </div>
+          <div class="text-[11px] text-slate-400 mb-2">Lead: <span id="lead-library" class="text-cyan-300 font-semibold">Dr. Rao</span></div>
+          <div class="flex justify-between items-center text-[11px] text-slate-400">
+            <span>Lights: <strong id="lights-library" class="text-amber-400">ON</strong></span>
+            <span>Fans: <strong id="fans-library" class="text-amber-400">ON</strong></span>
+          </div>
+        </div>
+
+        <!-- 3. Hostel -->
+        <div id="card-hostel-1" onclick="selectZone('hostel-1')" class="card-cyber p-4 cursor-pointer transition hover:border-cyan-400/40">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h4 class="font-bold text-xs text-white">Hostel Block 1</h4>
+              <span class="text-[10px] text-cyan-400 font-mono-code">Student Dorm Suite</span>
+            </div>
+            <span id="badge-hostel-1" class="text-[10px] px-2 py-0.5 rounded-md font-bold font-mono-code bg-emerald-950/80 text-emerald-300 border border-emerald-800">0 People</span>
+          </div>
+          <div class="text-[11px] text-slate-400 mb-2">Lead: <span id="lead-hostel-1" class="text-cyan-300 font-semibold">Warden Office</span></div>
+          <div class="flex justify-between items-center text-[11px] text-slate-400">
+            <span>Lights: <strong id="lights-hostel-1" class="text-amber-400">ON</strong></span>
+            <span>Fans: <strong id="fans-hostel-1" class="text-amber-400">ON</strong></span>
+          </div>
+        </div>
+
+        <!-- 4. Cafeteria -->
+        <div id="card-cafeteria" onclick="selectZone('cafeteria')" class="card-cyber p-4 cursor-pointer transition hover:border-cyan-400/40">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <h4 class="font-bold text-xs text-white">Cafeteria Complex</h4>
+              <span class="text-[10px] text-cyan-400 font-mono-code">Dining & Buffet</span>
+            </div>
+            <span id="badge-cafeteria" class="text-[10px] px-2 py-0.5 rounded-md font-bold font-mono-code bg-emerald-950/80 text-emerald-300 border border-emerald-800">0 People</span>
+          </div>
+          <div class="text-[11px] text-slate-400 mb-2">Lead: <span id="lead-cafeteria" class="text-cyan-300 font-semibold">Estate Manager</span></div>
+          <div class="flex justify-between items-center text-[11px] text-slate-400">
+            <span>Lights: <strong id="lights-cafeteria" class="text-amber-400">ON</strong></span>
+            <span>Fans: <strong id="fans-cafeteria" class="text-amber-400">ON</strong></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 3. SPLIT HERO STAGE: LIVE STREAM + REAL 3D MODEL ================= -->
+    <div id="split-surveillance" class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+      
+      <!-- LEFT: Live Camera Feed (5 Cols) -->
+      <div class="lg:col-span-5 card-cyber p-5 flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center space-x-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <h4 id="streamTitle" class="text-sm font-bold text-white">Live Node Stream: Academic Block A</h4>
+            </div>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 font-mono-code">YOLOv8 Edge Guard</span>
+          </div>
+
+          <div class="w-full h-[400px] rounded-2xl overflow-hidden bg-black border border-slate-800 relative flex items-center justify-center shadow-2xl">
+            <img id="liveVideoFeed" src="http://127.0.0.1:8000/stream/block-a" class="w-full h-full object-cover" />
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400">
+          <span>Stream URI: <code class="font-mono-code text-cyan-400">/stream/<span id="activeStreamSuffix">block-a</span></code></span>
+          <button onclick="openOverrideControls()" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 hover:underline">
+            ⚙️ Simulate Telemetry
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT: Interactive 3D Architectural Digital Twin (7 Cols) -->
+      <div class="lg:col-span-7 card-cyber p-5 flex flex-col justify-between relative overflow-hidden">
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center space-x-2">
+              <span id="threeDStatusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+              <h4 id="threeDHeading" class="text-sm font-bold text-white">3D Spatial Twin: Academic Block A</h4>
+            </div>
+            <span id="threeDModeTag" class="text-[10px] font-bold px-2.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-600 font-mono-code">
+              DETECTION: GREEN (SAFE)
+            </span>
+          </div>
+
+          <!-- 3D Canvas Viewport -->
+          <div id="threeDContainer" class="w-full h-[400px] rounded-2xl overflow-hidden border border-cyan-500/30 relative bg-[#02050f] shadow-2xl flex items-center justify-center">
+            <!-- Floating Architectural HUD Overlay -->
+            <div class="absolute top-3 left-4 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-[10px] font-mono-code text-cyan-300 pointer-events-none shadow-md">
+              <span id="archStructureTag">RIG: LECTURE AUDITORIUM • STADIUM TIERS</span>
+            </div>
+
+            <div class="absolute bottom-3 right-4 px-3 py-1.5 rounded-xl bg-slate-900/95 border border-slate-700/80 text-[10px] font-mono-code flex items-center space-x-2 pointer-events-none shadow-lg">
+              <span id="threeDFovDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span id="threeDFovLabel" class="text-emerald-300">RADAR FOV: COMPLIANT (GREEN)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-800 text-xs text-slate-400">
+          <div class="flex items-center space-x-4">
+            <span class="flex items-center space-x-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span class="text-[11px] text-slate-300">Green = Occupied</span>
+            </span>
+            <span class="flex items-center space-x-1.5">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span class="text-[11px] text-slate-300">Red = Unattended Wastage</span>
+            </span>
+          </div>
+          <button onclick="reset3DCamera()" class="text-xs font-bold text-cyan-400 hover:text-cyan-300 hover:underline">
+            🔄 Reset 3D Angle
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= 4. TELEMETRY, FACULTY ROUTING & ISOLATION ================= -->
+    <div id="telemetry-section" class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+      
+      <!-- Anomaly Diagnosis & Incharge Alert Dispatch (6 Cols) -->
+      <div class="lg:col-span-6 card-cyber p-5 flex flex-col justify-between">
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="text-sm font-bold text-white">Autonomous Waste Reasoning</h4>
+            <span class="text-[10px] font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 font-mono-code">Edge Engine</span>
+          </div>
+
+          <div id="anomalyBanner" class="p-4 rounded-xl bg-rose-950/40 border border-rose-500/40 mb-4 shadow-lg shadow-rose-950/40">
+            <div class="flex justify-between items-center text-xs font-bold text-rose-400 mb-1">
+              <span>UNATTENDED ROOM ENERGY LEAKAGE</span>
+              <span class="text-[10px] bg-rose-900 text-rose-200 px-2 py-0.5 rounded-full font-black border border-rose-600 font-mono-code">CRITICAL SEV-1</span>
+            </div>
+            <p id="anomalyDesc" class="text-xs text-rose-200/90 mb-2 leading-relaxed">0 occupants confirmed via YOLO inference while electrical appliances remain active.</p>
+            <div class="flex justify-between items-center text-xs text-rose-300 bg-black/50 p-2.5 rounded-lg border border-rose-900/60 font-semibold">
+              <span>Automatic WhatsApp Dispatch:</span>
+              <span class="font-bold text-emerald-400 font-mono-code">Sent (Max 2 Notices)</span>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex justify-between items-center mb-4 shadow-inner">
+            <div>
+              <div class="flex items-center space-x-1.5 mb-0.5">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono-code">Assigned Incharge</span>
+                <button onclick="openFacultyModal()" class="text-[10px] text-cyan-400 font-bold hover:underline font-mono-code">(Edit Faculty)</button>
+              </div>
+              <span id="inchargeName" class="text-xs font-black text-white block">Prof. Puneeth Kumar</span>
+              <span id="inchargePhone" class="text-xs font-mono-code text-cyan-400 font-bold">+91 6361114713</span>
+            </div>
+            <button onclick="triggerManualAlert()" class="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white shadow-lg shadow-cyan-500/20 transition">
+              Dispatch Notice
+            </button>
+          </div>
+        </div>
+
+        <button id="isolateBtn" onclick="isolateRelay()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 text-white font-black text-xs uppercase tracking-widest transition shadow-lg shadow-rose-900/40 flex items-center justify-center space-x-2">
+          <span>⚡</span>
+          <span>Engage Circuit Relay Cutoff</span>
+        </button>
+      </div>
+
+      <!-- Real-time Energy Trends Chart (6 Cols) -->
+      <div class="lg:col-span-6 card-cyber p-5 flex flex-col justify-between">
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="text-sm font-bold text-white">Load Profile & Carbon Efficiency</h4>
+          <span class="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20 font-mono-code">kW Trend</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 my-auto">
+          <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800">
+            <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1 font-mono-code">Hourly Load (kW)</span>
+            <div class="h-32 w-full">
+              <canvas id="barTrendChart"></canvas>
+            </div>
+          </div>
+          <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col items-center justify-center">
+            <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1 font-mono-code text-center">Efficiency Score</span>
+            <div class="h-28 w-28 relative flex items-center justify-center">
+              <canvas id="donutChart"></canvas>
+              <span class="absolute font-black text-sm text-cyan-300 font-mono-code">88%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ================= 5. SQLITE AUDIT LEDGER ================= -->
+    <div id="ledger-section" class="card-cyber p-5">
+      <div class="flex justify-between items-center mb-4">
+        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider font-mono-code">Persistent SQLite Compliance Ledger</h4>
+        <span class="text-xs text-cyan-400 font-bold font-mono-code">Live Edge Sync Active</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 uppercase text-[10px] tracking-wider font-mono-code">
+              <th class="pb-3 font-bold">Timestamp</th>
+              <th class="pb-3 font-bold">Audit Source</th>
+              <th class="pb-3 font-bold">Event & Entity</th>
+              <th class="pb-3 font-bold">Status Badge</th>
+              <th class="pb-3 font-bold">Net Energy Impact</th>
+            </tr>
+          </thead>
+          <tbody id="auditLogsBody" class="divide-y divide-slate-800/80 font-mono-code text-slate-300">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modals -->
+  <div id="facultyModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-md shadow-2xl">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider font-mono-code">Assign / Edit Faculty Incharge</h3>
+        <button onclick="closeFacultyModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Campus Facility Zone</label>
+          <select id="modalZoneSelect" onchange="populateModalFields()" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
             <option value="block-a">Academic Block A</option>
             <option value="library">Central Library</option>
             <option value="hostel-1">Hostel Block 1</option>
             <option value="cafeteria">Cafeteria Complex</option>
           </select>
         </div>
+
         <div>
-          <label class="block text-slate-400 mb-1">Incharge Name:</label>
-          <input id="modal-name" type="text" placeholder="e.g. Prof. Sharma" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Faculty Name</label>
+          <input type="text" id="modalFacultyName" placeholder="Prof. Puneeth Kumar" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
         </div>
+
         <div>
-          <label class="block text-slate-400 mb-1">Role / Designation:</label>
-          <input id="modal-role" type="text" placeholder="e.g. Academic Dean / Floor Warden" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">WhatsApp Mobile Number</label>
+          <input type="text" id="modalFacultyPhone" placeholder="91XXXXXXXXXX" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+          <span class="text-[10px] text-slate-400 mt-1 block">WhatsApp notifications for this specific facility will automatically dispatch to this number.</span>
         </div>
-        <div>
-          <label class="block text-slate-400 mb-1">WhatsApp / Mobile Number (with country code):</label>
-          <input id="modal-phone" type="text" placeholder="e.g. 919844012345" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-mono">
+
+        <div class="flex space-x-3 pt-3">
+          <button id="saveFacultyBtn" onclick="saveFacultyContact()" class="flex-1 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs uppercase tracking-wider transition">
+            Save Assignment
+          </button>
+          <button onclick="closeFacultyModal()" class="px-4 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition">
+            Cancel
+          </button>
         </div>
-      </div>
-      <div class="mt-4 pt-3 border-t border-slate-800 flex justify-end gap-2">
-        <button onclick="closeInchargeModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs">Cancel</button>
-        <button onclick="saveInchargeData()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-xs">Save Contact</button>
       </div>
     </div>
   </div>
 
-  <!-- Header -->
-  <header class="flex flex-wrap justify-between items-center pb-4 border-b border-slate-800 mb-5 gap-3">
-    <div>
-      <div class="flex items-center gap-3">
-        <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-        <h1 class="text-xl font-black tracking-wide text-white">EcoPulse AI</h1>
-        <span class="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">MULTI-REMOTE SENSING OS</span>
-      </div>
-      <p class="text-xs text-slate-400 mt-0.5">Cellular/Remote Mobile Camera Ingestion • Automated Incharge WhatsApp Dispatch</p>
-    </div>
-    <div class="flex items-center gap-3 text-xs font-mono">
-      <button onclick="openInchargeModal()" class="bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 px-3 py-1.5 rounded-lg text-cyan-300 font-semibold transition-all cursor-pointer">
-        👤 Edit Incharge Contacts
-      </button>
-      <button onclick="resetDemo()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-700 px-3 py-1.5 rounded-lg text-slate-200 font-semibold transition-all cursor-pointer">
-        ↺ Reset Demo State
-      </button>
-      <div class="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg text-slate-400 font-bold" id="clock">--:--:--</div>
-    </div>
-  </header>
-
-  <!-- 1. Digital Twin Campus Nodes -->
-  <div class="mb-5">
-    <div class="flex justify-between items-center mb-2.5">
-      <h2 class="text-xs uppercase tracking-wider font-bold text-slate-400">1. Select Campus Zone (Click Card to View Live Camera)</h2>
-      <span class="text-[11px] text-cyan-400 font-mono">● Active Feed: <span id="current-active-feed-label">Academic Block A</span></span>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3.5" id="campus-nodes-grid">
-      <!-- Injected by JavaScript -->
-    </div>
-  </div>
-
-  <!-- 2 & 3. AI Diagnostic Agent + Live Camera Stream -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-5 items-stretch">
-    
-    <!-- Autonomous AI Diagnostic Agent Card -->
-    <div class="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-      <div>
-        <div class="flex items-center justify-between pb-2.5 border-b border-slate-800 mb-3">
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
-            <h3 class="font-bold text-white text-sm">Autonomous AI Diagnostic Agent</h3>
-          </div>
-          <span class="text-[10px] font-mono px-2 py-0.5 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded">REASONING CORE</span>
-        </div>
-
-        <div id="ai-agent-body" class="space-y-3">
-          <!-- Active Incident Card -->
-          <div class="bg-rose-950/30 border border-rose-900/60 p-3.5 rounded-lg">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-[11px] uppercase font-bold text-rose-400">Empty Room Anomaly Detected</span>
-              <span class="text-[10px] font-mono px-1.5 py-0.5 bg-rose-500/20 text-rose-300 rounded border border-rose-500/30">SEV-1 CRITICAL</span>
-            </div>
-            <div class="text-sm font-semibold text-white mt-0.5" id="agent-anomaly-title">Academic Block A: 42 kW Leakage</div>
-            <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
-              <strong class="text-slate-100">AI Vision:</strong> 0 people detected in Room 402. HVAC and lights drawing peak load off-schedule.
-            </p>
-            <div class="grid grid-cols-2 gap-2 mt-2.5 pt-2.5 border-t border-rose-900/40 text-xs">
-              <div>
-                <span class="text-slate-400 text-[11px]">Carbon Penalty:</span>
-                <div class="font-bold text-rose-400 text-sm">+128 kg CO₂/day</div>
-              </div>
-              <div>
-                <span class="text-slate-400 text-[11px]">Financial Leak:</span>
-                <div class="font-bold text-rose-400 text-sm">₹3,840 / 6 hrs</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Dynamic Incharge Notification Widget -->
-          <div class="bg-slate-950/70 border border-slate-800 p-3 rounded-lg flex items-center justify-between">
-            <div>
-              <div class="text-[10px] uppercase font-bold text-slate-500">Zone Incharge Alert Contact</div>
-              <div class="text-xs font-bold text-white mt-0.5" id="incharge-display-name">Prof. Sharma (Academic Dean)</div>
-              <div class="text-[11px] text-slate-400 font-mono" id="incharge-display-phone">+91 9844012345</div>
-            </div>
-            <button onclick="sendWhatsAppDispatch()" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md">
-              <span>💬 Push WhatsApp</span>
-            </button>
-          </div>
-
-          <!-- Microgrid Breaker Status Telemetry -->
-          <div class="grid grid-cols-3 gap-2 text-center">
-            <div class="bg-slate-950/70 border border-slate-800 p-2 rounded-lg">
-              <div class="text-[9px] uppercase font-bold text-slate-500">Wireless Remote</div>
-              <div class="text-xs font-mono font-bold text-cyan-400 mt-0.5">LTE / 5G / Cam</div>
-            </div>
-            <div class="bg-slate-950/70 border border-slate-800 p-2 rounded-lg">
-              <div class="text-[9px] uppercase font-bold text-slate-500">Trip Latency</div>
-              <div class="text-xs font-mono font-bold text-emerald-400 mt-0.5">&lt; 45ms</div>
-            </div>
-            <div class="bg-slate-950/70 border border-slate-800 p-2 rounded-lg">
-              <div class="text-[9px] uppercase font-bold text-slate-500">Occupancy</div>
-              <div class="text-xs font-mono font-bold text-rose-400 mt-0.5">0 PERSONS</div>
-            </div>
-          </div>
-        </div>
+  <div id="overrideModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl w-full max-w-sm shadow-2xl">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white uppercase tracking-wider font-mono-code">Simulate Zone Telemetry</h3>
+        <button onclick="closeOverrideModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
       </div>
 
-      <div class="mt-3 pt-2.5 border-t border-slate-800">
-        <button id="relay-btn" onclick="executeRelayTrigger('block-a')" class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 active:scale-95 font-bold text-white text-xs tracking-wider uppercase rounded-lg transition-all shadow-lg shadow-emerald-950 flex items-center justify-center gap-2 cursor-pointer">
-          <span>⚡ Trigger Automated Cutoff & Save Power</span>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Person Count in Zone</label>
+          <input type="number" id="simOccupants" value="0" min="0" max="100" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-white">
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <label class="flex items-center space-x-2 text-xs text-slate-300">
+            <input type="checkbox" id="simLights" checked class="rounded text-cyan-500">
+            <span class="font-medium">Lights Active</span>
+          </label>
+          <label class="flex items-center space-x-2 text-xs text-slate-300">
+            <input type="checkbox" id="simFans" checked class="rounded text-cyan-500">
+            <span class="font-medium">Fans / HVAC Active</span>
+          </label>
+        </div>
+
+        <button onclick="applyZoneSimulation()" class="w-full py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs uppercase tracking-wider transition">
+          Inject State
         </button>
       </div>
     </div>
-
-    <!-- Multi-Stream Camera & Waste Vision Scanner -->
-    <div class="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
-      <div>
-        <div class="flex justify-between items-center pb-2.5 border-b border-slate-800 mb-2.5">
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
-            <h3 class="font-bold text-white text-sm" id="camera-stream-heading">Live Camera Feed: Academic Block A</h3>
-          </div>
-          <span class="text-[11px] text-slate-400 font-mono" id="vision-mode-badge">Remote Ingestion • YOLOv8 Edge Active</span>
-        </div>
-
-        <!-- Live Camera Viewport -->
-        <div class="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-slate-800 mb-3 flex items-center justify-center shadow-inner" id="vision-display-area">
-          <img id="live-stream-img" src="http://127.0.0.1:8000/video_feed/block-a" 
-               alt="Live Node Feed"
-               class="w-full h-full object-cover" />
-        </div>
-
-        <!-- Presets & Manual Test Triggers -->
-        <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-[11px] font-semibold text-slate-300">Auditing Streams & Waste Presets:</span>
-            <button onclick="switchToLiveCamera()" class="text-[10px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-800 font-mono cursor-pointer">
-              🎥 Back to Live Stream
-            </button>
-          </div>
-          <div class="grid grid-cols-2 gap-2.5">
-            <button onclick="showPreset('contaminated')" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 active:scale-95 border border-rose-900/60 text-rose-300 text-xs rounded-lg font-medium text-left transition-all cursor-pointer">
-              ⚠ <strong>Cafeteria Wet Bin:</strong> Plastic Contamination
-            </button>
-            <button onclick="showPreset('clean')" class="py-2.5 px-3 bg-slate-800 hover:bg-slate-700 active:scale-95 border border-emerald-900/60 text-emerald-300 text-xs rounded-lg font-medium text-left transition-all cursor-pointer">
-              ✓ <strong>Hostel 1 Station:</strong> 100% Organic Audit
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
-  <!-- Persistent SQLite Audit Ledger -->
-  <div class="bg-slate-900 border border-slate-800 rounded-xl p-4">
-    <div class="flex justify-between items-center mb-2.5">
-      <h3 class="font-bold text-white text-xs uppercase tracking-wider">Persistent SQLite Compliance & Intervention Ledger</h3>
-      <span class="text-[11px] text-slate-500 font-mono">Real-Time DB Sync</span>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-xs">
-        <thead class="bg-slate-800/60 uppercase font-semibold text-slate-400 border-b border-slate-700">
-          <tr>
-            <th class="py-2 px-3">Timestamp</th>
-            <th class="py-2 px-3">Audit Source</th>
-            <th class="py-2 px-3">Entity / Action</th>
-            <th class="py-2 px-3">Status</th>
-            <th class="py-2 px-3">Impact / Action Taken</th>
-          </tr>
-        </thead>
-        <tbody id="logs-table" class="divide-y divide-slate-800 text-slate-300 font-mono">
-          <!-- Populated by JS -->
-        </tbody>
-      </table>
-    </div>
-  </div>
-
+  <!-- ================= 3D ARCHITECTURAL TWIN ENGINE & DASHBOARD SCRIPTS ================= -->
   <script>
-    let activeZone = "block-a";
-    let inchargeDirectory = {};
+    let currentSelectedZone = "block-a";
+    let campusState = {
+      "block-a": { name: "Academic Block A", occupants: 0, lights_on: true, fans_on: true, power_draw: "4.2 kW", incharge_name: "Prof. Puneeth Kumar", incharge_phone: "916361114713" },
+      "library": { name: "Central Library", occupants: 0, lights_on: true, fans_on: true, power_draw: "2.4 kW", incharge_name: "Dr. Rao", incharge_phone: "916361114713" },
+      "hostel-1": { name: "Hostel Block 1", occupants: 0, lights_on: true, fans_on: true, power_draw: "1.8 kW", incharge_name: "Warden Office", incharge_phone: "916361114713" },
+      "cafeteria": { name: "Cafeteria Complex", occupants: 0, lights_on: true, fans_on: true, power_draw: "3.1 kW", incharge_name: "Estate Manager", incharge_phone: "916361114713" }
+    };
 
-    setInterval(() => {
-      const clockEl = document.getElementById('clock');
-      if (clockEl) clockEl.innerText = new Date().toLocaleTimeString();
-    }, 1000);
+    function updateClock() {
+      document.getElementById("clock").innerText = new Date().toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
 
-    // Fetch and load incharge directory
-    async function loadIncharges() {
-      try {
-        const res = await fetch("http://127.0.0.1:8000/api/incharges");
-        inchargeDirectory = await res.json();
-        updateInchargeDisplay();
-      } catch (e) {}
+    function scrollToSection(sectionId) {
+      const el = document.getElementById(sectionId);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function updateInchargeDisplay() {
-      const data = inchargeDirectory[activeZone] || { name: "Campus Officer", role: "Duty Warden", phone: "919844012345" };
-      document.getElementById("incharge-display-name").innerText = `${data.name} (${data.role})`;
-      document.getElementById("incharge-display-phone").innerText = `+${data.phone}`;
+    /* ---------------- THREE.JS 3D ARCHITECTURAL OBJECT ENGINE ---------------- */
+    let threeScene, threeCamera, threeRenderer;
+    let roomGroup, visionCone, cameraRig, ceilingFixtures = [], dynamicSpotlights = [];
+    let isDragging = false, prevMouseX = 0, prevMouseY = 0;
+    let currentBuiltZone = "";
+
+    function init3DRoomEngine() {
+      const container = document.getElementById("threeDContainer");
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      threeScene = new THREE.Scene();
+      threeScene.background = new THREE.Color(0x02050f);
+
+      threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 120);
+      threeCamera.position.set(24, 19, 26);
+      threeCamera.lookAt(0, 2, 0);
+
+      threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      threeRenderer.setSize(width, height);
+      threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(threeRenderer.domElement);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+      threeScene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0x38bdf8, 0.85);
+      dirLight.position.set(20, 30, 20);
+      threeScene.add(dirLight);
+
+      buildArchitectureForZone("block-a");
+
+      container.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        prevMouseX = e.clientX;
+        prevMouseY = e.clientY;
+      });
+
+      window.addEventListener('mouseup', () => { isDragging = false; });
+
+      container.addEventListener('mousemove', (e) => {
+        if (!isDragging || !roomGroup) return;
+        const deltaX = e.clientX - prevMouseX;
+        const deltaY = e.clientY - prevMouseY;
+        prevMouseX = e.clientX;
+        prevMouseY = e.clientY;
+
+        roomGroup.rotation.y += deltaX * 0.008;
+        threeCamera.position.y = Math.max(8, Math.min(30, threeCamera.position.y - deltaY * 0.05));
+        threeCamera.lookAt(0, 2, 0);
+      });
+
+      window.addEventListener('resize', () => {
+        if (!container) return;
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        threeCamera.aspect = w / h;
+        threeCamera.updateProjectionMatrix();
+        threeRenderer.setSize(w, h);
+      });
+
+      animate3DRoom();
     }
 
-    function openInchargeModal() {
-      document.getElementById("incharge-modal").classList.remove("hidden");
-      document.getElementById("modal-zone-id").value = activeZone;
-      const data = inchargeDirectory[activeZone] || { name: "", role: "", phone: "" };
-      document.getElementById("modal-name").value = data.name;
-      document.getElementById("modal-role").value = data.role;
-      document.getElementById("modal-phone").value = data.phone;
+    function reset3DCamera() {
+      threeCamera.position.set(24, 19, 26);
+      threeCamera.lookAt(0, 2, 0);
+      if (roomGroup) roomGroup.rotation.y = 0;
     }
 
-    function closeInchargeModal() {
-      document.getElementById("incharge-modal").classList.add("hidden");
+    /* REUSABLE PROCEDURAL ASSETS */
+    function createDetailedDesk(x, y, z, rotationY = 0) {
+      const deskGroup = new THREE.Group();
+      deskGroup.position.set(x, y, z);
+      deskGroup.rotation.y = rotationY;
+
+      const top = new THREE.Mesh(
+        new THREE.BoxGeometry(4.8, 0.2, 2.2),
+        new THREE.MeshStandardMaterial({ color: 0x27272a, roughness: 0.3, metalness: 0.2 })
+      );
+      top.position.y = 1.3;
+      deskGroup.add(top);
+
+      const legMat = new THREE.MeshStandardMaterial({ color: 0x52525b, metalness: 0.8 });
+      [[-2.2, 0.65, -0.9], [2.2, 0.65, -0.9], [-2.2, 0.65, 0.9], [2.2, 0.65, 0.9]].forEach(p => {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.3, 12), legMat);
+        leg.position.set(p[0], p[1], p[2]);
+        deskGroup.add(leg);
+      });
+
+      const laptopBase = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.04, 0.6), new THREE.MeshStandardMaterial({ color: 0x94a3b8 }));
+      laptopBase.position.set(0, 1.42, 0);
+      const laptopScreen = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.5, 0.04), new THREE.MeshStandardMaterial({ color: 0x0284c7, emissive: 0x0284c7, emissiveIntensity: 0.5 }));
+      laptopScreen.position.set(0, 1.68, -0.28);
+      laptopScreen.rotation.x = 0.2;
+      deskGroup.add(laptopBase, laptopScreen);
+
+      const chairSeat = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.15, 1.2), new THREE.MeshStandardMaterial({ color: 0x18181b }));
+      chairSeat.position.set(0, 0.9, 1.2);
+      const chairBack = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.3, 0.15), new THREE.MeshStandardMaterial({ color: 0x18181b }));
+      chairBack.position.set(0, 1.6, 1.75);
+      const chairBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.9, 8), legMat);
+      chairBase.position.set(0, 0.45, 1.2);
+      deskGroup.add(chairSeat, chairBack, chairBase);
+
+      return deskGroup;
     }
 
-    async function saveInchargeData() {
-      const zid = document.getElementById("modal-zone-id").value;
-      const name = encodeURIComponent(document.getElementById("modal-name").value);
-      const role = encodeURIComponent(document.getElementById("modal-role").value);
-      const phone = encodeURIComponent(document.getElementById("modal-phone").value);
+    function createBookcase(x, y, z) {
+      const shelfGroup = new THREE.Group();
+      shelfGroup.position.set(x, y, z);
 
-      await fetch(`http://127.0.0.1:8000/api/incharges/${zid}?name=${name}&role=${role}&phone=${phone}`, { method: 'POST' });
-      closeInchargeModal();
-      await loadIncharges();
-      loadLogs();
-    }
+      const frameMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.6 });
+      const upright1 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 7.5, 12), frameMat);
+      upright1.position.set(-1.2, 3.75, 0);
+      const upright2 = new THREE.Mesh(new THREE.BoxGeometry(0.2, 7.5, 12), frameMat);
+      upright2.position.set(1.2, 3.75, 0);
+      shelfGroup.add(upright1, upright2);
 
-    // Direct WhatsApp Dispatch Integration
-    async function sendWhatsAppDispatch() {
-      try {
-        const res = await fetch(`http://127.0.0.1:8000/api/notify/whatsapp/${activeZone}`, { method: 'POST' });
-        const data = await res.json();
-        if (data.whatsapp_url) {
-          window.open(data.whatsapp_url, '_blank');
+      const bookColors = [0xef4444, 0x3b82f6, 0x10b981, 0xf59e0b, 0x8b5cf6, 0xec4899];
+      for (let s = 1; s <= 4; s++) {
+        const shelfPlank = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.15, 12), frameMat);
+        shelfPlank.position.y = s * 1.5;
+        shelfGroup.add(shelfPlank);
+
+        for (let b = -5; b < 5; b += 0.45) {
+          const bColor = bookColors[Math.floor(Math.random() * bookColors.length)];
+          const book = new THREE.Mesh(
+            new THREE.BoxGeometry(0.35, 1.1 + Math.random() * 0.25, 0.8),
+            new THREE.MeshStandardMaterial({ color: bColor, roughness: 0.4 })
+          );
+          book.position.set(0, s * 1.5 + 0.65, b);
+          shelfGroup.add(book);
         }
-        loadLogs();
-      } catch (e) {
-        alert("Failed to connect to notification gateway.");
       }
+
+      return shelfGroup;
     }
 
-    function switchCameraFeed(zoneId, zoneName) {
-      activeZone = zoneId;
-      document.getElementById("current-active-feed-label").innerText = zoneName;
-      document.getElementById("camera-stream-heading").innerText = `Live Camera Feed: ${zoneName}`;
-      
-      const streamImg = document.getElementById("live-stream-img");
-      if (streamImg) {
-        streamImg.src = `http://127.0.0.1:8000/video_feed/${zoneId}?t=${Date.now()}`;
+    function createBunkBed(x, y, z) {
+      const bedGroup = new THREE.Group();
+      bedGroup.position.set(x, y, z);
+
+      const frameMat = new THREE.MeshStandardMaterial({ color: 0x52525b, metalness: 0.7 });
+      const postGeo = new THREE.CylinderGeometry(0.12, 0.12, 6.5, 12);
+      [[-2.2, 3.25, -3.8], [2.2, 3.25, -3.8], [-2.2, 3.25, 3.8], [2.2, 3.25, 3.8]].forEach(p => {
+        const post = new THREE.Mesh(postGeo, frameMat);
+        post.position.set(p[0], p[1], p[2]);
+        bedGroup.add(post);
+      });
+
+      const mattressMat = new THREE.MeshStandardMaterial({ color: 0x0284c7 });
+      const lowerBed = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.7, 7.4), mattressMat);
+      lowerBed.position.y = 1.2;
+      const upperBed = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.7, 7.4), mattressMat);
+      upperBed.position.y = 4.8;
+      bedGroup.add(lowerBed, upperBed);
+
+      const pillowMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc });
+      const p1 = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.3, 1.4), pillowMat);
+      p1.position.set(0, 1.7, -2.6);
+      const p2 = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.3, 1.4), pillowMat);
+      p2.position.set(0, 5.3, -2.6);
+      bedGroup.add(p1, p2);
+
+      return bedGroup;
+    }
+
+    function createDiningTableSet(x, y, z) {
+      const group = new THREE.Group();
+      group.position.set(x, y, z);
+
+      const tableTop = new THREE.Mesh(
+        new THREE.CylinderGeometry(2.1, 2.1, 0.15, 24),
+        new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.2 })
+      );
+      tableTop.position.y = 1.6;
+      const centerLeg = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.2, 0.2, 1.6, 12),
+        new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 })
+      );
+      centerLeg.position.y = 0.8;
+      group.add(tableTop, centerLeg);
+
+      const chairMat = new THREE.MeshStandardMaterial({ color: 0x0284c7 });
+      const angles = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
+      angles.forEach(ang => {
+        const chair = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.12, 0.9), chairMat);
+        const dist = 2.6;
+        chair.position.set(Math.cos(ang) * dist, 0.9, Math.sin(ang) * dist);
+        const back = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.2, 0.1), chairMat);
+        back.position.set(Math.cos(ang) * (dist + 0.4), 1.5, Math.sin(ang) * (dist + 0.4));
+        back.rotation.y = -ang + Math.PI / 2;
+        group.add(chair, back);
+      });
+
+      return group;
+    }
+
+    /* BUILD SPECIFIC 3D ARCHITECTURAL STRUCTURE FOR EACH ROOM */
+    function buildArchitectureForZone(zoneKey) {
+      if (currentBuiltZone === zoneKey && roomGroup) return;
+      currentBuiltZone = zoneKey;
+
+      if (roomGroup) {
+        threeScene.remove(roomGroup);
       }
-      updateInchargeDisplay();
-      loadCampus();
+
+      roomGroup = new THREE.Group();
+      threeScene.add(roomGroup);
+      ceilingFixtures = [];
+      dynamicSpotlights = [];
+
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.85 });
+      const floorMat = new THREE.MeshStandardMaterial({ color: 0x080e21, roughness: 0.6 });
+
+      const floor = new THREE.Mesh(new THREE.BoxGeometry(28, 0.6, 28), floorMat);
+      floor.position.y = -0.3;
+      roomGroup.add(floor);
+
+      const grid = new THREE.GridHelper(28, 14, 0x38bdf8, 0x1e293b);
+      grid.position.y = 0.02;
+      roomGroup.add(grid);
+
+      const backWall = new THREE.Mesh(new THREE.BoxGeometry(28, 9, 0.6), wallMat);
+      backWall.position.set(0, 4.5, -14);
+      roomGroup.add(backWall);
+
+      const sideWall = new THREE.Mesh(new THREE.BoxGeometry(0.6, 9, 28), wallMat);
+      sideWall.position.set(-14, 4.5, 0);
+      roomGroup.add(sideWall);
+
+      const ductMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.85, roughness: 0.2 });
+      const mainDuct = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 28), ductMat);
+      mainDuct.position.set(6, 8.2, 0);
+      roomGroup.add(mainDuct);
+
+      // Camera coordinates in room
+      let camPos = new THREE.Vector3(-12.5, 7.8, -12.5);
+      let targetPos = new THREE.Vector3(2.5, 0.5, 2.5);
+
+      // 1. ACADEMIC BLOCK A (SMART AUDITORIUM)
+      if (zoneKey === "block-a") {
+        document.getElementById("archStructureTag").innerText = "RIG: AUDITORIUM • STADIUM RISERS & PODIUM";
+
+        const stage = new THREE.Mesh(new THREE.CylinderGeometry(15, 16, 0.9, 32, 1, false, 0, Math.PI), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
+        stage.position.set(0, 0.45, -7);
+        stage.rotation.y = Math.PI / 2;
+        roomGroup.add(stage);
+
+        const board = new THREE.Mesh(new THREE.BoxGeometry(16, 6.5, 0.3), new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.8 }));
+        board.position.set(0, 5.2, -13.6);
+        roomGroup.add(board);
+
+        const podium = new THREE.Mesh(new THREE.BoxGeometry(2.4, 3.2, 1.8), new THREE.MeshStandardMaterial({ color: 0x334155 }));
+        podium.position.set(0, 1.6, -7.5);
+        roomGroup.add(podium);
+
+        for (let r = 0; r < 3; r++) {
+          const tierY = r * 0.6;
+          const tier = new THREE.Mesh(new THREE.BoxGeometry(24, 0.6, 4.5), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+          tier.position.set(0, tierY + 0.3, -2 + r * 5.2);
+          roomGroup.add(tier);
+
+          for (let c = -1; c <= 1; c++) {
+            const desk = createDetailedDesk(c * 7.5, tierY + 0.6, -2 + r * 5.2);
+            roomGroup.add(desk);
+          }
+        }
+      }
+
+      // 2. CENTRAL LIBRARY
+      else if (zoneKey === "library") {
+        document.getElementById("archStructureTag").innerText = "RIG: CENTRAL LIBRARY • STACKS & STUDY CORRALS";
+
+        for (let i = 0; i < 3; i++) {
+          const shelf = createBookcase(-7.5 + i * 5.5, 0, -4);
+          roomGroup.add(shelf);
+        }
+
+        for (let j = 0; j < 2; j++) {
+          const studyTable = new THREE.Mesh(
+            new THREE.BoxGeometry(20, 1.5, 3.6),
+            new THREE.MeshStandardMaterial({ color: 0x3e2723, roughness: 0.4 })
+          );
+          studyTable.position.set(0, 0.75, 6 + j * 5.2);
+          const divider = new THREE.Mesh(
+            new THREE.BoxGeometry(19.8, 1.2, 0.1),
+            new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.5 })
+          );
+          divider.position.set(0, 2.1, 6 + j * 5.2);
+          roomGroup.add(studyTable, divider);
+
+          for (let cx = -7; cx <= 7; cx += 4.5) {
+            const chair = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.9, 1.2), new THREE.MeshStandardMaterial({ color: 0x18181b }));
+            chair.position.set(cx, 0.45, 6 + j * 5.2 + 2.5);
+            roomGroup.add(chair);
+          }
+        }
+      }
+
+      // 3. HOSTEL BLOCK 1
+      else if (zoneKey === "hostel-1") {
+        document.getElementById("archStructureTag").innerText = "RIG: HOSTEL SUITE • BUNK BEDS & WORKSTATIONS";
+
+        const bed1 = createBunkBed(-9, 0, -8);
+        const bed2 = createBunkBed(9, 0, -8);
+        roomGroup.add(bed1, bed2);
+
+        const divider = new THREE.Mesh(new THREE.BoxGeometry(0.4, 7.5, 16), wallMat);
+        divider.position.set(0, 3.75, -5.5);
+        roomGroup.add(divider);
+
+        const desk1 = createDetailedDesk(-7.5, 0, 4);
+        const desk2 = createDetailedDesk(7.5, 0, 4);
+        roomGroup.add(desk1, desk2);
+
+        const lockerMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.6 });
+        const locker1 = new THREE.Mesh(new THREE.BoxGeometry(3, 7, 2), lockerMat);
+        locker1.position.set(-11.5, 3.5, 10);
+        const locker2 = new THREE.Mesh(new THREE.BoxGeometry(3, 7, 2), lockerMat);
+        locker2.position.set(11.5, 3.5, 10);
+        roomGroup.add(locker1, locker2);
+      }
+
+      // 4. CAFETERIA COMPLEX
+      else if (zoneKey === "cafeteria") {
+        document.getElementById("archStructureTag").innerText = "RIG: CAFETERIA COMPLEX • DINING & BUFFET COUNTER";
+
+        const counter = new THREE.Mesh(
+          new THREE.BoxGeometry(24, 2.4, 3.5),
+          new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.2, metalness: 0.5 })
+        );
+        counter.position.set(0, 1.2, -10.5);
+
+        const glassGuard = new THREE.Mesh(
+          new THREE.BoxGeometry(23.8, 1.2, 0.1),
+          new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.4 })
+        );
+        glassGuard.position.set(0, 3, -9.2);
+        roomGroup.add(counter, glassGuard);
+
+        const tPositions = [
+          [-6.5, 0, -3.5], [0, 0, -3.5], [6.5, 0, -3.5],
+          [-6.5, 0, 4.5],  [0, 0, 4.5],  [6.5, 0, 4.5],
+          [-3.5, 0, 10.5], [3.5, 0, 10.5]
+        ];
+        tPositions.forEach(p => {
+          const t = createDiningTableSet(p[0], p[1], p[2]);
+          roomGroup.add(t);
+        });
+
+        camPos = new THREE.Vector3(0, 8.2, 0);
+        targetPos = new THREE.Vector3(0, 0.2, 0);
+      }
+
+      // Ceiling Lights
+      const fixturePositions = [
+        [-6.5, 8.2, -6.5], [6.5, 8.2, -6.5],
+        [-6.5, 8.2, 5],    [6.5, 8.2, 5]
+      ];
+      fixturePositions.forEach(pos => {
+        const fixtureGroup = new THREE.Group();
+        fixtureGroup.position.set(pos[0], pos[1], pos[2]);
+
+        const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.2), new THREE.MeshBasicMaterial({ color: 0x94a3b8 }));
+        wire.position.y = 0.6;
+        const lamp = new THREE.Mesh(
+          new THREE.CylinderGeometry(1.2, 1.4, 0.4, 16),
+          new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x10b981, emissiveIntensity: 1 })
+        );
+        fixtureGroup.add(wire, lamp);
+        roomGroup.add(fixtureGroup);
+        ceilingFixtures.push(lamp);
+
+        const spot = new THREE.PointLight(0x10b981, 1.2, 16);
+        spot.position.set(pos[0], pos[1] - 0.5, pos[2]);
+        roomGroup.add(spot);
+        dynamicSpotlights.push(spot);
+      });
+
+      // ================= PERFECT CENTER-AIMED CONE IMPLEMENTATION =================
+      // Physical Camera Bracket
+      cameraRig = new THREE.Group();
+      cameraRig.position.copy(camPos);
+
+      const camBracket = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 1.0), new THREE.MeshStandardMaterial({ color: 0x94a3b8 }));
+      const camHousing = new THREE.Mesh(new THREE.SphereGeometry(0.65, 16, 16), new THREE.MeshStandardMaterial({ color: 0x0284c7 }));
+      camHousing.position.set(0, -0.5, 0);
+      cameraRig.add(camBracket, camHousing);
+      roomGroup.add(cameraRig);
+
+      // Inverted Open-Ended Truncated Cone Geometry (Lens to Floor)
+      // Top radius 0.2 sits at camera lens; bottom radius 5.5 expands over the seating/floor
+      const beamLength = camPos.distanceTo(targetPos) * 0.9;
+      const coneGeo = new THREE.CylinderGeometry(0.2, 5.5, beamLength, 32, 1, true);
+
+      // Translate along -Y so pivot is at the top (camera lens)
+      coneGeo.translate(0, -beamLength / 2, 0);
+      // Align Cylinder's vertical Y-axis to point forward (+Z) so lookAt works directly
+      coneGeo.rotateX(-Math.PI / 2);
+
+      const coneMat = new THREE.MeshBasicMaterial({
+        color: 0x10b981,
+        transparent: true,
+        opacity: 0.28,
+        side: THREE.DoubleSide,
+        depthWrite: false
+      });
+
+      visionCone = new THREE.Mesh(coneGeo, coneMat);
+      visionCone.position.set(camPos.x, camPos.y - 0.5, camPos.z);
+      visionCone.lookAt(targetPos);
+
+      roomGroup.add(visionCone);
+    }
+
+    function animate3DRoom() {
+      requestAnimationFrame(animate3DRoom);
+
+      if (visionCone) {
+        visionCone.material.opacity = 0.24 + Math.sin(Date.now() * 0.0035) * 0.08;
+      }
+
+      threeRenderer.render(threeScene, threeCamera);
+    }
+
+    /* ---------------- UPDATE 3D DETECTION (RED vs GREEN) ---------------- */
+    function update3DVisualState(zoneKey) {
+      buildArchitectureForZone(zoneKey);
+
+      if (!visionCone || !ceilingFixtures.length) return;
+
+      const zone = campusState[zoneKey] || {};
+      const occupants = zone.occupants || 0;
+      const isWasting = (occupants === 0) && (zone.lights_on || zone.fans_on);
+
+      const statusDot = document.getElementById("threeDStatusDot");
+      const modeTag = document.getElementById("threeDModeTag");
+      const fovDot = document.getElementById("threeDFovDot");
+      const fovLabel = document.getElementById("threeDFovLabel");
+      const detectionBadge = document.getElementById("detectionBadge");
+      const activeRadarBadge = document.getElementById("activeRadarBadge");
+      const activeModelBadge = document.getElementById("activeModelBadge");
+
+      const names = {
+        "block-a": "Auditorium",
+        "library": "Central Library",
+        "hostel-1": "Hostel Suite",
+        "cafeteria": "Cafeteria Complex"
+      };
+      if (activeModelBadge) activeModelBadge.innerText = names[zoneKey] || "Custom Node";
+
+      if (isWasting) {
+        visionCone.material.color.setHex(0xf43f5e);
+        ceilingFixtures.forEach(fix => {
+          fix.material.color.setHex(0xf43f5e);
+          fix.material.emissive.setHex(0xf43f5e);
+        });
+        dynamicSpotlights.forEach(sp => sp.color.setHex(0xf43f5e));
+
+        statusDot.className = "w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping";
+        modeTag.className = "text-[10px] font-bold px-2.5 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-600 font-mono-code";
+        modeTag.innerText = "DETECTION: RED (ENERGY LEAKAGE)";
+
+        fovDot.className = "w-2 h-2 rounded-full bg-rose-500";
+        fovLabel.className = "text-rose-300";
+        fovLabel.innerText = "RADAR FOV: UNATTENDED DRAW (RED)";
+
+        detectionBadge.className = "text-rose-400 bg-rose-950/80 px-2 py-0.5 rounded-md text-[10px] font-mono-code font-bold border border-rose-700";
+        detectionBadge.innerText = "STATUS: UNATTENDED LEAK";
+
+        if (activeRadarBadge) {
+          activeRadarBadge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-700";
+          activeRadarBadge.innerText = "RED WARNING";
+        }
+      } else {
+        visionCone.material.color.setHex(0x10b981);
+        ceilingFixtures.forEach(fix => {
+          fix.material.color.setHex(0x10b981);
+          fix.material.emissive.setHex(0x10b981);
+        });
+        dynamicSpotlights.forEach(sp => sp.color.setHex(0x10b981));
+
+        statusDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping";
+        modeTag.className = "text-[10px] font-bold px-2.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-600 font-mono-code";
+        modeTag.innerText = occupants > 0 ? `DETECTION: GREEN (${occupants} PERSONS)` : "DETECTION: GREEN (SAFE OFF)";
+
+        fovDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        fovLabel.className = "text-emerald-300";
+        fovLabel.innerText = "RADAR FOV: COMPLIANT (GREEN)";
+
+        detectionBadge.className = "text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded-md text-[10px] font-mono-code font-bold border border-emerald-700";
+        detectionBadge.innerText = "STATUS: COMPLIANT";
+
+        if (activeRadarBadge) {
+          activeRadarBadge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-700";
+          activeRadarBadge.innerText = "GREEN";
+        }
+      }
+
+      document.getElementById("threeDHeading").innerText = `3D Spatial Twin: ${zone.name || zoneKey}`;
+    }
+
+    /* ---------------- TELEMETRY CHARTS ---------------- */
+    function initCharts() {
+      const barCtx = document.getElementById('barTrendChart').getContext('2d');
+      new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: ['10:00', '11:00', '12:00', '13:00', '14:00'],
+          datasets: [{
+            data: [3.8, 4.2, 4.5, 4.0, 4.2],
+            backgroundColor: '#38bdf8',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 9 } } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 9 } } }
+          }
+        }
+      });
+
+      const donutCtx = document.getElementById('donutChart').getContext('2d');
+      new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: [88, 12],
+            backgroundColor: ['#38bdf8', '#1e293b'],
+            borderWidth: 0,
+            cutout: '75%'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { tooltip: { enabled: false } }
+        }
+      });
     }
 
     async function loadCampus() {
       try {
         const res = await fetch("http://127.0.0.1:8000/api/campus");
-        const nodes = await res.json();
-        const container = document.getElementById("campus-nodes-grid");
-        if (!container) return;
-
-        container.innerHTML = nodes.map(n => {
-          const isSelected = n.id === activeZone;
-          const isCritical = n.status === "CRITICAL";
-          const isWarning = n.status === "WARNING";
-          
-          const ringClass = isSelected ? "ring-2 ring-cyan-400 shadow-cyan-950/80 shadow-lg" : "";
-          const borderClass = isCritical 
-            ? "border-rose-600 bg-rose-950/20" 
-            : isWarning 
-            ? "border-amber-600 bg-amber-950/20" 
-            : "border-slate-800 bg-slate-900";
-          
-          const badgeClass = isCritical 
-            ? "bg-rose-500/20 text-rose-400 border-rose-500/30" 
-            : isWarning 
-            ? "bg-amber-500/20 text-amber-400 border-amber-500/30" 
-            : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
-
-          return `
-            <div onclick="switchCameraFeed('${n.id}', '${n.name}')" class="border ${borderClass} ${ringClass} rounded-xl p-3.5 transition-all relative overflow-hidden cursor-pointer hover:border-cyan-500">
-              ${isCritical ? '<div class="absolute -right-3 -top-3 w-10 h-10 rounded-full bg-rose-500/20 pulse-ring"></div>' : ''}
-              <div class="flex justify-between items-start mb-2">
-                <span class="font-bold text-white text-sm">${n.name}</span>
-                <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${badgeClass}">${n.status}</span>
-              </div>
-              <div class="space-y-1 text-xs text-slate-300 font-mono">
-                <div class="flex justify-between"><span class="text-slate-500">Power:</span> <strong>${n.power_kw} kW</strong></div>
-                <div class="flex justify-between"><span class="text-slate-500">Water Flow:</span> <strong>${n.water_lpm} L/min</strong></div>
-                <div class="flex justify-between"><span class="text-slate-500">HVAC Status:</span> <strong class="${isCritical ? 'text-rose-400 font-bold' : ''}">${n.hvac_status}</strong></div>
-                <div class="flex justify-between"><span class="text-slate-500">Waste Level:</span> <strong>${n.waste_level}</strong></div>
-              </div>
-              <div class="mt-2 text-[9px] font-bold text-cyan-400 flex items-center justify-between">
-                <span>📹 CLICK TO VIEW CAM</span>
-                ${isSelected ? '<span class="text-emerald-400">● LIVE</span>' : ''}
-              </div>
-            </div>
-          `;
-        }).join('');
-      } catch (e) {}
-    }
-
-    async function executeRelayTrigger(nodeId) {
-      try {
-        await fetch(`http://127.0.0.1:8000/api/relay/trigger/${nodeId}`, { method: 'POST' });
-        document.getElementById("ai-agent-body").innerHTML = `
-          <div class="bg-emerald-950/30 border border-emerald-900/60 p-3.5 rounded-lg">
-            <div class="text-[11px] uppercase font-bold text-emerald-400 mb-1">Power Isolated</div>
-            <div class="text-sm font-semibold text-white">Empty Room Load Disconnected</div>
-            <p class="text-xs text-slate-300 mt-1.5 leading-relaxed">
-              Automated circuit trip completed for unoccupied rooms. HVAC & lights deactivated. Saved 42 kW.
-            </p>
-            <div class="mt-2.5 pt-2 border-t border-emerald-900/40 text-xs font-bold text-emerald-400">
-              ✓ Carbon Saved: 128 kg CO₂/day • Financial Loss Prevented: ₹3,840
-            </div>
-          </div>
-        `;
-        const btn = document.getElementById("relay-btn");
-        if (btn) btn.classList.add("hidden");
-        loadCampus();
-        loadLogs();
-      } catch (e) {}
-    }
-
-    async function showPreset(type) {
-      await fetch(`http://127.0.0.1:8000/api/waste/simulate-audit?audit_type=${type}`, { method: 'POST' });
-      loadLogs();
-      const display = document.getElementById("vision-display-area");
-
-      if (type === 'contaminated') {
-        display.innerHTML = `
-          <div class="relative w-full h-full bg-slate-900 flex items-center justify-center overflow-hidden">
-            <img src="https://images.unsplash.com/photo-1605600659908-0ef719419d41?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-85" />
-            <div class="absolute top-1/4 left-1/3 w-48 h-36 border-2 border-rose-500 rounded bg-rose-500/10 p-1.5 flex flex-col justify-between">
-              <span class="text-[10px] font-mono font-bold text-rose-300 bg-rose-950 px-1 rounded">PLASTIC BOTTLE 94%</span>
-              <span class="text-[9px] font-bold text-rose-400 bg-black/80 px-1 rounded">⚠ CONTAMINATED ORGANIC BIN</span>
-            </div>
-          </div>`;
-      } else {
-        display.innerHTML = `
-          <div class="relative w-full h-full bg-slate-900 flex items-center justify-center overflow-hidden">
-            <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover opacity-85" />
-            <div class="absolute top-1/3 left-1/4 w-52 h-40 border-2 border-emerald-400 rounded bg-emerald-500/10 p-1.5 flex flex-col justify-between">
-              <span class="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-950 px-1 rounded">100% ORGANIC 98%</span>
-              <span class="text-[9px] font-bold text-emerald-300 bg-black/80 px-1 rounded">✓ CLEAN RECYCLING VERIFIED</span>
-            </div>
-          </div>`;
+        if (res.ok) {
+          const remoteState = await res.json();
+          campusState = { ...campusState, ...remoteState };
+        }
+      } catch (err) {
+        console.warn("Backend poll standby, using local state cache:", err);
       }
+
+      ["block-a", "library", "hostel-1", "cafeteria"].forEach(key => {
+        const z = campusState[key];
+        if (!z) return;
+
+        const badge = document.getElementById(`badge-${key}`);
+        const lead = document.getElementById(`lead-${key}`);
+        const lights = document.getElementById(`lights-${key}`);
+        const fans = document.getElementById(`fans-${key}`);
+
+        if (badge) {
+          const isWasting = z.occupants === 0 && (z.lights_on || z.fans_on);
+          badge.innerText = `${z.occupants} People`;
+          badge.className = `text-[10px] px-2 py-0.5 rounded-md font-bold font-mono-code ${
+            isWasting ? 'bg-rose-950/80 text-rose-300 border border-rose-800' : 'bg-emerald-950/80 text-emerald-300 border border-emerald-800'
+          }`;
+        }
+        if (lead) lead.innerText = z.incharge_name?.split(' ')[0] || 'Unassigned';
+        if (lights) {
+          lights.innerText = z.lights_on ? 'ON' : 'OFF';
+          lights.className = z.lights_on ? 'text-amber-400' : 'text-slate-600';
+        }
+        if (fans) {
+          fans.innerText = z.fans_on ? 'ON' : 'OFF';
+          fans.className = z.fans_on ? 'text-amber-400' : 'text-slate-600';
+        }
+      });
+
+      updateDiagnosticPanel();
+      update3DVisualState(currentSelectedZone);
     }
 
-    function switchToLiveCamera() {
-      const display = document.getElementById("vision-display-area");
-      display.innerHTML = `
-        <img id="live-stream-img" src="http://127.0.0.1:8000/video_feed/${activeZone}?t=${Date.now()}" 
-             alt="Live Node Feed"
-             class="w-full h-full object-cover" />
-      `;
+    function selectZone(zoneKey) {
+      currentSelectedZone = zoneKey;
+
+      ["block-a", "library", "hostel-1", "cafeteria"].forEach(key => {
+        const card = document.getElementById(`card-${key}`);
+        if (card) {
+          if (key === zoneKey) {
+            card.className = "card-cyber p-4 cursor-pointer transition active-zone-cyber";
+          } else {
+            card.className = "card-cyber p-4 cursor-pointer transition hover:border-cyan-400/40";
+          }
+        }
+      });
+
+      const zone = campusState[zoneKey] || {};
+      document.getElementById("activeNodeLabel").innerText = `Active: ${zone.name || zoneKey}`;
+      document.getElementById("streamTitle").innerText = `Live Node Stream: ${zone.name || zoneKey}`;
+      document.getElementById("activeStreamSuffix").innerText = zoneKey;
+      document.getElementById("liveVideoFeed").src = `http://127.0.0.1:8000/stream/${zoneKey}?t=` + Date.now();
+
+      updateDiagnosticPanel();
+      update3DVisualState(zoneKey);
+    }
+
+    function updateDiagnosticPanel() {
+      const zone = campusState[currentSelectedZone];
+      if (!zone) return;
+
+      document.getElementById("metricOccupants").innerText = zone.occupants;
+      document.getElementById("metricPower").innerText = zone.power_draw || "0.0 kW";
+      document.getElementById("inchargeName").innerText = zone.incharge_name || "Unassigned Faculty";
+      document.getElementById("inchargePhone").innerText = zone.incharge_phone ? `+${zone.incharge_phone}` : "+91 Not Set";
+
+      const isWasting = zone.occupants === 0 && (zone.lights_on || zone.fans_on);
+      const banner = document.getElementById("anomalyBanner");
+      if (isWasting) {
+        banner.style.display = "block";
+      } else {
+        banner.style.display = "none";
+      }
     }
 
     async function loadLogs() {
       try {
         const res = await fetch("http://127.0.0.1:8000/api/logs");
+        if (!res.ok) return;
         const logs = await res.json();
-        const tbody = document.getElementById("logs-table");
-        if (!tbody) return;
+        const tbody = document.getElementById("auditLogsBody");
+        tbody.innerHTML = "";
 
-        if (logs.length > 0) {
-          tbody.innerHTML = logs.map(l => `
-            <tr class="hover:bg-slate-800/30">
-              <td class="py-2 px-3 text-slate-500 font-mono">${l.timestamp}</td>
-              <td class="py-2 px-3 font-semibold text-white">${l.source}</td>
-              <td class="py-2 px-3">${l.event}</td>
-              <td class="py-2 px-3">
-                <span class="px-1.5 py-0.5 rounded ${l.status.includes('RESOLVED') || l.status.includes('COMPLIANT') ? 'text-emerald-400 bg-emerald-950/60' : 'text-rose-400 bg-rose-950/60'}">${l.status}</span>
-              </td>
-              <td class="py-2 px-3 text-slate-300 font-bold">${l.impact}</td>
-            </tr>
-          `).join('');
+        if (logs.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="py-4 text-center text-slate-500">No active incidents logged in audit ledger.</td></tr>`;
+          return;
         }
-      } catch (e) {}
+
+        logs.forEach(log => {
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-slate-800/40 transition";
+
+          const isNormal = log.status.includes("Normal") || log.status.includes("Compliant");
+          const statusBadge = isNormal
+            ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-700/60">${log.status}</span>`
+            : `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-950/80 text-rose-300 border border-rose-700/60">${log.status}</span>`;
+
+          tr.innerHTML = `
+            <td class="py-2.5 text-slate-400 font-mono-code">${log.timestamp}</td>
+            <td class="py-2.5 text-white font-semibold">${log.source}</td>
+            <td class="py-2.5 text-slate-300">${log.event}</td>
+            <td class="py-2.5">${statusBadge}</td>
+            <td class="py-2.5 text-emerald-400 font-bold font-mono-code">${log.impact}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.warn("Logs poll standby:", err);
+      }
+    }
+
+    function openFacultyModal() {
+      document.getElementById("modalZoneSelect").value = currentSelectedZone;
+      populateModalFields();
+      document.getElementById("facultyModal").classList.remove("hidden");
+    }
+
+    function closeFacultyModal() {
+      document.getElementById("facultyModal").classList.add("hidden");
+    }
+
+    function populateModalFields() {
+      const selected = document.getElementById("modalZoneSelect").value;
+      const zone = campusState[selected];
+      if (zone) {
+        document.getElementById("modalFacultyName").value = zone.incharge_name || "";
+        document.getElementById("modalFacultyPhone").value = zone.incharge_phone || "";
+      }
+    }
+
+    async function saveFacultyContact() {
+      const zoneKey = document.getElementById("modalZoneSelect").value;
+      const name = document.getElementById("modalFacultyName").value.trim();
+      const phone = document.getElementById("modalFacultyPhone").value.trim();
+
+      const btn = document.getElementById("saveFacultyBtn");
+      btn.innerText = "Saving...";
+
+      try {
+        await fetch(`http://127.0.0.1:8000/api/update_incharge/${zoneKey}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, phone })
+        });
+      } catch (e) {
+        console.error(e);
+      }
+
+      if (campusState[zoneKey]) {
+        campusState[zoneKey].incharge_name = name;
+        campusState[zoneKey].incharge_phone = phone;
+      }
+
+      btn.innerText = "Save Assignment";
+      closeFacultyModal();
+      await loadCampus();
+    }
+
+    function openOverrideControls() {
+      const zone = campusState[currentSelectedZone];
+      document.getElementById("simOccupants").value = zone.occupants;
+      document.getElementById("simLights").checked = zone.lights_on;
+      document.getElementById("simFans").checked = zone.fans_on;
+      document.getElementById("overrideModal").classList.remove("hidden");
+    }
+
+    function closeOverrideModal() {
+      document.getElementById("overrideModal").classList.add("hidden");
+    }
+
+    async function applyZoneSimulation() {
+      const occ = parseInt(document.getElementById("simOccupants").value) || 0;
+      const lights = document.getElementById("simLights").checked;
+      const fans = document.getElementById("simFans").checked;
+
+      if (campusState[currentSelectedZone]) {
+        campusState[currentSelectedZone].occupants = occ;
+        campusState[currentSelectedZone].lights_on = lights;
+        campusState[currentSelectedZone].fans_on = fans;
+      }
+
+      try {
+        await fetch(`http://127.0.0.1:8000/api/set_zone/${currentSelectedZone}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ occupants: occ, lights_on: lights, fans_on: fans })
+        });
+      } catch (e) {
+        console.error(e);
+      }
+
+      closeOverrideModal();
+      loadCampus();
+    }
+
+    async function triggerManualAlert() {
+      await fetch(`http://127.0.0.1:8000/api/push_alert/${currentSelectedZone}`, { method: "POST" });
+      loadLogs();
+    }
+
+    async function isolateRelay() {
+      const btn = document.getElementById("isolateBtn");
+      btn.innerText = "⚡ Tripping Relay...";
+      
+      try {
+        await fetch(`http://127.0.0.1:8000/api/isolate_circuit/${currentSelectedZone}`, { method: "POST" });
+        if (campusState[currentSelectedZone]) {
+          campusState[currentSelectedZone].lights_on = false;
+          campusState[currentSelectedZone].fans_on = false;
+          campusState[currentSelectedZone].power_draw = "0.0 kW";
+        }
+        await loadCampus();
+        await loadLogs();
+      } catch (err) {
+        console.error(err);
+      }
+
+      btn.innerHTML = "<span>⚡</span><span>Engage Circuit Relay Cutoff</span>";
     }
 
     async function resetDemo() {
-      await fetch("http://127.0.0.1:8000/api/reset", { method: 'POST' });
-      location.reload();
+      await fetch("http://127.0.0.1:8000/api/reset", { method: "POST" });
+      loadCampus();
+      loadLogs();
     }
 
-    setInterval(() => {
+    window.addEventListener("DOMContentLoaded", () => {
+      init3DRoomEngine();
+      initCharts();
+      loadCampus();
       loadLogs();
-    }, 2500);
-
-    loadIncharges();
-    loadCampus();
-    loadLogs();
+      setInterval(loadCampus, 2000);
+      setInterval(loadLogs, 2000);
+    });
   </script>
 </body>
 </html>
